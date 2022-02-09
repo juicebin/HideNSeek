@@ -1,0 +1,4 @@
+name: HideNSeek
+version: '${version}'
+main: juicebin.hidenseek.HideNSeek
+api-version: 1.18

@@ -1,0 +1,116 @@
+package juicebin.hidenseek;
+
+import juicebin.hidenseek.command.Commands;
+import juicebin.hidenseek.event.Listeners;
+import juicebin.hidenseek.game.Game;
+import me.lucko.commodore.Commodore;
+import me.lucko.commodore.CommodoreProvider;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.stream.Collectors;
+
+public final class HideNSeek extends JavaPlugin {
+    public static HideNSeek INSTANCE;
+    private FileConfiguration teamConfig;
+    private Commodore commodore;
+    private Scoreboard scoreboard;
+
+    @Override
+    public void onEnable() {
+        INSTANCE = this;
+
+        this.saveDefaultConfig();
+        this.createTeamsConfig();
+
+        this.commodore = CommodoreProvider.getCommodore(this);
+        this.scoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
+
+        // Register listeners
+        Listeners listeners = new Listeners();
+        listeners.register(this);
+
+        // Register commands
+        Commands commands = new Commands();
+        commands.register(this);
+
+        // Initialize hiding teams
+        ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
+        for (String key : hiders.getKeys(false)) {
+            String teamName = "hiders-" + key;
+            this.scoreboard.registerNewTeam(teamName);
+            Team team = this.scoreboard.getTeam(key);
+            if (team == null) {
+                // TODO: SEND ERROR
+                return;
+            }
+            team.addEntries(hiders.getStringList(key));
+        }
+
+        // Initialize seeking team
+        this.scoreboard.registerNewTeam("seekers");
+        Team team = this.scoreboard.getTeam("seekers");
+        if (team == null) {
+            // TODO: SEND ERROR
+            return;
+        }
+        team.addEntries(teamConfig.getStringList("seekers"));
+    }
+
+    @Override
+    public void onDisable() {
+
+    }
+
+    public Commodore getCommodore() {
+        return commodore;
+    }
+
+    private void createTeamsConfig() {
+        File teamConfigFile = new File(getDataFolder(), "teams.yml");
+        if (!teamConfigFile.exists()) {
+            teamConfigFile.getParentFile().mkdirs();
+            saveResource("teams.yml", false);
+        }
+
+        teamConfig = new YamlConfiguration();
+        try {
+            teamConfig.load(teamConfigFile);
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public FileConfiguration getTeamConfig() {
+        return teamConfig;
+    }
+
+    public Scoreboard getScoreboard() {
+        return scoreboard;
+    }
+
+    public boolean isSeeker(Player player) {
+        return this.scoreboard.getTeam("seekers").hasPlayer(player);
+    }
+
+    public boolean isHider(Player player) {
+        this.scoreboard.getTeams()
+                .stream()
+                .filter(t -> t.getName().startsWith("hiders-"))
+                .map(Team::getEntries)
+                .forEach(strings -> {
+                    if (strings.contains(player.getName())) {
+                        return;
+                    }
+                });
+        return false;
+    }
+}
