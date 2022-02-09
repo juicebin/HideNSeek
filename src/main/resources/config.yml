@@ -11,9 +11,15 @@ seek_time: 24000
 border_start_shrink: 12000
 
 # The amount of time in-between each border shrinking (in ticks)
-border_interval:
+border_shrink_interval:
 
 # The amount of blocks the border shrinks by
+# Default: 1
+border_shrink_size: 1
+
+# How much time it takes for the players to start glowing (in ticks)
+# Default: 0 (starts immediately)
+glow_start: 0
 
 # The amount of time in-between each time the hiders glow (in ticks)
 # Default: 3600 (3:00)
