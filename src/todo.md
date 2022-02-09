@@ -8,3 +8,5 @@
 
 - rounds
 - point system??? prob just wins/losses
+
+- [] Test Config.java functionality
