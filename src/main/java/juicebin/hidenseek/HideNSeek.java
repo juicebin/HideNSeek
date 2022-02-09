@@ -16,6 +16,8 @@ import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class HideNSeek extends JavaPlugin {
@@ -98,19 +100,26 @@ public final class HideNSeek extends JavaPlugin {
     }
 
     public boolean isSeeker(Player player) {
-        return this.scoreboard.getTeam("seekers").hasPlayer(player);
+        Team seekers = this.scoreboard.getTeam("seekers");
+        if (seekers == null) {
+            // TODO: Send error
+            return false;
+        }
+        return seekers.hasPlayer(player);
     }
 
     public boolean isHider(Player player) {
-        this.scoreboard.getTeams()
+        List<Set<String>> entryList = this.scoreboard.getTeams()
                 .stream()
                 .filter(t -> t.getName().startsWith("hiders-"))
                 .map(Team::getEntries)
-                .forEach(strings -> {
-                    if (strings.contains(player.getName())) {
-                        return;
-                    }
-                });
+                .collect(Collectors.toList());
+
+        for (Set<String> strings : entryList) {
+            if (strings.contains(player.getName())) {
+                return true;
+            }
+        }
         return false;
     }
 }
