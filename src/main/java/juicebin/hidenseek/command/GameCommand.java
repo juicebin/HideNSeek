@@ -23,6 +23,11 @@ public class GameCommand extends RegisteredCommand {
     }
 
     @Override
+    protected void run(CommandSender sender, Command command, String label, String[] args) {
+
+    }
+
+    @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
         switch (args[0]) {
