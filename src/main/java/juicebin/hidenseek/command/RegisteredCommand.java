@@ -7,15 +7,13 @@ import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class RegisteredCommand implements CommandExecutor {
     public void register(HideNSeek instance) {
@@ -38,18 +36,29 @@ public abstract class RegisteredCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        ClassUtils.getMethodsAnnotatedWith(this.getClass(), SubCommand.class).forEach((method, annotation) -> {
-            if (args[0].equals(((SubCommand) annotation).value())) {
-                try {
-                    method.invoke(this, sender, command, label, args);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                this.run(sender, command, label, args);
-            }
-        });
+        if (!this.checkSubcommands(sender, command, label, args)) {
+            this.run(sender, command, label, args);
+        }
 
         return true;
+    }
+
+    private boolean checkSubcommands(CommandSender sender, Command command, String label, String[] args) {
+        List<Method> methodList = ClassUtils.getMethodsAnnotatedWith(this.getClass(), SubCommand.class)
+                .stream()
+                .filter(method -> {
+                    SubCommand subCommand = method.getAnnotation(SubCommand.class);
+                    if (command.getName().equals(subCommand.parent()) && args[0].equals(subCommand.name())) {
+                        try {
+                            method.invoke(this, sender, command, label, args);
+                            return true;
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return false;
+                }).collect(Collectors.toList());
+
+        return methodList.size() > 0;
     }
 }

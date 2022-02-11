@@ -11,19 +11,19 @@ import java.util.function.Consumer;
 
 public final class ClassUtils {
 
-    public static Map<Method, Annotation> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation) {
-        final Map<Method, Annotation> map = new HashMap<>();
+    public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation) {
+        final List<Method> methods = new ArrayList<>();
         Class<?> klass = type;
         while (klass != Object.class) {
             for (final Method method : klass.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(annotation)) {
                     Annotation annotInstance = method.getAnnotation(annotation);
-                    map.put(method, annotInstance);
+                    methods.add(method);
                 }
             }
             klass = klass.getSuperclass();
         }
-        return map;
+        return methods;
     }
 
 }
