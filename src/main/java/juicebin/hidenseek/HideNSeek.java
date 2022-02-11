@@ -1,8 +1,7 @@
 package juicebin.hidenseek;
 
 import juicebin.hidenseek.command.Commands;
-import juicebin.hidenseek.event.Listeners;
-import juicebin.hidenseek.game.Game;
+import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.configuration.ConfigurationSection;

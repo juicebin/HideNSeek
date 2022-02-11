@@ -1,4 +1,4 @@
-package juicebin.hidenseek.event;
+package juicebin.hidenseek.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
