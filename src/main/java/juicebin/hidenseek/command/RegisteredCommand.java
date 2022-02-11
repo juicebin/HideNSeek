@@ -16,7 +16,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class RegisteredCommand implements CommandExecutor {
+    protected HideNSeek plugin;
+
     public void register(HideNSeek instance) {
+        this.plugin = instance;
         Optional.ofNullable(instance.getCommand(this.getName())).ifPresentOrElse(pluginCommand -> {
             pluginCommand.setExecutor(this);
 

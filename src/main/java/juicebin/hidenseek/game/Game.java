@@ -6,9 +6,7 @@ import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
-import juicebin.hidenseek.event.BorderShrinkEvent;
-import juicebin.hidenseek.event.HidersGlowEvent;
-import juicebin.hidenseek.event.SeekersReleasedEvent;
+import juicebin.hidenseek.event.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,22 +16,24 @@ import org.bukkit.event.Listener;
 
 import java.util.HashMap;
 
-public final class Game implements Listener {
+public class Game implements Listener {
+    private final HideNSeek plugin;
+    private final String id;
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
-    private final HideNSeek plugin;
     private boolean active;
     private boolean seekersReleased;
     private boolean borderStartedShrink;
     private boolean hidersStartGlow;
     private int ticks;
 
-    public Game(HideNSeek instance, ProtectedCuboidRegion gameRegion, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
+    public Game(HideNSeek instance, String id, ProtectedCuboidRegion gameRegion, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
+        this.plugin = instance;
+        this.id = id;
         this.lobbyLocation = lobbyLocation;
         this.hiderSpawn = hiderSpawn;
         this.seekerSpawn = seekerSpawn;
-        this.plugin = instance;
 
         // Initialize region flags
         ConfigurationSection regionFlagSection = instance.getConfig().getConfigurationSection("region_flags");
@@ -53,18 +53,20 @@ public final class Game implements Listener {
         gameRegion.setFlags(flags);
     }
 
-    public void start() {
+    protected void start() {
         active = true;
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        Bukkit.getPluginManager().callEvent(new GameStartEvent());
     }
 
-    public void stop() {
+    protected void stop() {
         ticks = 0;
         active = false;
         seekersReleased = false;
         borderStartedShrink = false;
         hidersStartGlow = false;
         HandlerList.unregisterAll(this);
+        Bukkit.getPluginManager().callEvent(new GameStopEvent());
     }
 
     public void tick() {
@@ -119,4 +121,7 @@ public final class Game implements Listener {
         tick();
     }
 
+    public String getId() {
+        return id;
+    }
 }

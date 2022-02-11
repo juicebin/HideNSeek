@@ -1,6 +1,7 @@
 package juicebin.hidenseek.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import juicebin.hidenseek.game.Game;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -43,6 +44,6 @@ public class GameCommand extends RegisteredCommand {
     }
 
     public void start(String[] args) {
-
+        // GameHandler.startGame(new Game(...));
     }
 }
