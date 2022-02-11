@@ -1,28 +1,39 @@
 package juicebin.hidenseek.game;
 
+import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
+import juicebin.hidenseek.event.BorderShrinkEvent;
+import juicebin.hidenseek.event.HidersGlowEvent;
+import juicebin.hidenseek.event.SeekersReleasedEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 
 import java.util.HashMap;
 
-public final class Game {
-    private final ProtectedCuboidRegion gameRegion;
+public final class Game implements Listener {
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
+    private final HideNSeek plugin;
     private boolean active;
+    private boolean seekersReleased;
+    private boolean borderStartedShrink;
+    private boolean hidersStartGlow;
     private int ticks;
 
     public Game(HideNSeek instance, ProtectedCuboidRegion gameRegion, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
-        this.gameRegion = gameRegion;
         this.lobbyLocation = lobbyLocation;
         this.hiderSpawn = hiderSpawn;
         this.seekerSpawn = seekerSpawn;
+        this.plugin = instance;
 
         // Initialize region flags
         ConfigurationSection regionFlagSection = instance.getConfig().getConfigurationSection("region_flags");
@@ -43,17 +54,46 @@ public final class Game {
     }
 
     public void start() {
-        this.active = true;
+        active = true;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     public void stop() {
         ticks = 0;
+        active = false;
+        seekersReleased = false;
+        borderStartedShrink = false;
+        hidersStartGlow = false;
+        HandlerList.unregisterAll(this);
     }
 
     public void tick() {
         ticks++;
 
-        if (ticks <= 0) {
+        if (!seekersReleased && ticks >= Config.HIDE_TIME) {
+            seekersReleased = true;
+
+            SeekersReleasedEvent event = new SeekersReleasedEvent();
+            if (!event.isCancelled()) {
+                Bukkit.getPluginManager().callEvent(event);
+            }
+        } else if (!borderStartedShrink && ticks >= Config.BORDER_SHRINK_START_TIME) {
+            borderStartedShrink = true;
+
+            BorderShrinkEvent event = new BorderShrinkEvent(true);
+            if (!event.isCancelled()) {
+                Bukkit.getPluginManager().callEvent(event);
+            }
+        } else if (!hidersStartGlow && ticks >= Config.GLOW_START_TIME) {
+            hidersStartGlow = true;
+
+            HidersGlowEvent event = new HidersGlowEvent(true);
+            if (!event.isCancelled()) {
+                Bukkit.getPluginManager().callEvent(event);
+            }
+        }
+
+        if (ticks >= Config.SEEK_TIME) {
             this.stop();
         }
     }
@@ -73,4 +113,10 @@ public final class Game {
     public Location getSeekerSpawn() {
         return seekerSpawn;
     }
+
+    @EventHandler
+    public void onTick(ServerTickStartEvent event) {
+        tick();
+    }
+
 }

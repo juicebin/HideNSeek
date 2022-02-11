@@ -1,4 +1,4 @@
-# The amount of time players have to hide (in ticks)
+# The amount of time players have to hide without the seekers (in ticks)
 # Default: 4200 (3:30)
 hide_time: 4200
 
