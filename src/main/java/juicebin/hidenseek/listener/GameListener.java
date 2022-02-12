@@ -3,15 +3,12 @@ package juicebin.hidenseek.listener;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import java.util.logging.Level;
 
 public class GameListener extends RegisteredListener {
-    private HideNSeek plugin;
+    private final HideNSeek plugin;
 
     public GameListener(HideNSeek instance) {
         this.plugin = instance;
@@ -44,7 +41,7 @@ public class GameListener extends RegisteredListener {
 
     @EventHandler
     public void onSeekerTagHider(SeekerTagHiderEvent event) {
-
+        Bukkit.getLogger().log(Level.CONFIG, "Event called: SeekerTagHiderEvent");
     }
 
 }

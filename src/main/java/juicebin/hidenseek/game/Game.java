@@ -60,6 +60,9 @@ public class Game implements Listener {
         ticks++;
 
         Config config = plugin.getConfigInstance();
+
+        plugin.getScoreboard().getObjective("time");
+
         if (!seekersReleased && ticks >= config.getHideTime()) {
             seekersReleased = true;
 
@@ -67,19 +70,37 @@ public class Game implements Listener {
             if (!event.isCancelled()) {
                 Bukkit.getPluginManager().callEvent(event);
             }
-        } else if (!borderStartedShrink && ticks >= config.getBorderShrinkStartTime()) {
-            borderStartedShrink = true;
+        }
 
-            BorderShrinkEvent event = new BorderShrinkEvent(this, true);
-            if (!event.isCancelled()) {
-                Bukkit.getPluginManager().callEvent(event);
+        if (ticks >= config.getBorderShrinkStartTime()) {
+            if (!borderStartedShrink) {
+                borderStartedShrink = true;
+
+                BorderShrinkEvent event = new BorderShrinkEvent(this, true);
+                if (!event.isCancelled()) {
+                    Bukkit.getPluginManager().callEvent(event);
+                }
+            } else if ((ticks - config.getBorderShrinkStartTime()) % config.getBorderShrinkInterval() == 0) {
+                BorderShrinkEvent event = new BorderShrinkEvent(this, false);
+                if (!event.isCancelled()) {
+                    Bukkit.getPluginManager().callEvent(event);
+                }
             }
-        } else if (!hidersStartGlow && ticks >= config.getGlowStartTime()) {
-            hidersStartGlow = true;
+        }
 
-            HidersGlowEvent event = new HidersGlowEvent(this, true);
-            if (!event.isCancelled()) {
-                Bukkit.getPluginManager().callEvent(event);
+        if (ticks >= config.getGlowStartTime()) {
+            if (!hidersStartGlow) {
+                hidersStartGlow = true;
+
+                HidersGlowEvent event = new HidersGlowEvent(this, true);
+                if (!event.isCancelled()) {
+                    Bukkit.getPluginManager().callEvent(event);
+                }
+            } else if ((ticks - config.getGlowStartTime()) % config.getGlowInterval() == 0) {
+                HidersGlowEvent event = new HidersGlowEvent(this, true);
+                if (!event.isCancelled()) {
+                    Bukkit.getPluginManager().callEvent(event);
+                }
             }
         }
 
@@ -128,7 +149,10 @@ public class Game implements Listener {
         if (targetEntity instanceof Player target && attackerEntity instanceof Player attacker) {
             if (plugin.isSeeker(attacker) && plugin.isHider(target)) {
                 // If a seeker attacks a hider
-                Bukkit.getPluginManager().callEvent(new SeekerTagHiderEvent(this, attacker, target));
+                SeekerTagHiderEvent eventToCall = new SeekerTagHiderEvent(this, attacker, target);
+                if (!eventToCall.isCancelled()) {
+                    Bukkit.getPluginManager().callEvent(eventToCall);
+                }
             }
 
             // Cancel player vs player damage (disable damage in the world while the game the running)
