@@ -21,6 +21,7 @@ public final class Config {
     private final Location lobbyLocation;
     private final List<String> seekerNames;
     private final List<String> hiderNamesAll;
+    private final boolean isDebugMode;
 
     public Config(HideNSeek instance) {
         FileConfiguration config = instance.getConfig();
@@ -38,6 +39,7 @@ public final class Config {
         Map<String, Boolean> regionFlags1 = new HashMap<>();
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
+        this.isDebugMode = config.isBoolean("debug");
         this.lobbyLocation = new Location(
                 instance.getServer().getWorld(config.getString("lobby.world")),
                 config.getDouble("lobby.x"),
@@ -94,5 +96,9 @@ public final class Config {
 
     public List<String> getSeekerNames() {
         return seekerNames;
+    }
+
+    public boolean isDebugMode() {
+        return isDebugMode;
     }
 }

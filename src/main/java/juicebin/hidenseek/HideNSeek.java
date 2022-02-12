@@ -130,7 +130,9 @@ public final class HideNSeek extends JavaPlugin {
         return this.configInstance;
     }
 
-    public static void debug(String msg) {
-        Bukkit.getLogger().log(Level.INFO, "[DEBUG] " + msg);
+    public void debug(String msg) {
+        if (configInstance.isDebugMode()) {
+            Bukkit.getLogger().log(Level.INFO, "[DEBUG] " + msg);
+        }
     }
 }
