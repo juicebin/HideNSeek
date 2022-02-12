@@ -28,7 +28,7 @@ public class Game implements Listener {
     private boolean hidersStartGlow;
     private int ticks;
 
-    public Game(HideNSeek instance, String id, ProtectedCuboidRegion gameRegion, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
+    public Game(HideNSeek instance, String id, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
         this.plugin = instance;
         this.id = id;
         this.lobbyLocation = lobbyLocation;
@@ -36,21 +36,21 @@ public class Game implements Listener {
         this.seekerSpawn = seekerSpawn;
 
         // Initialize region flags
-        ConfigurationSection regionFlagSection = instance.getConfig().getConfigurationSection("region_flags");
-        HashMap<Flag<?>, Object> flags = new HashMap<>();
-        flags.put(Flags.INVINCIBILITY, regionFlagSection.getBoolean("INVINCIBILITY"));
-        flags.put(Flags.SLEEP, regionFlagSection.getBoolean("SLEEP"));
-        flags.put(Flags.TRAMPLE_BLOCKS, regionFlagSection.getBoolean("TRAMPLE_BLOCKS"));
-        flags.put(Flags.ITEM_FRAME_ROTATE, regionFlagSection.getBoolean("ITEM_FRAME_ROTATE"));
-        flags.put(Flags.OTHER_EXPLOSION, regionFlagSection.getBoolean("OTHER_EXPLOSION"));
-        flags.put(Flags.FIRE_SPREAD, regionFlagSection.getBoolean("FIRE_SPREAD"));
-        flags.put(Flags.MOB_SPAWNING, regionFlagSection.getBoolean("MOB_SPAWNING"));
-        flags.put(Flags.LAVA_FIRE, regionFlagSection.getBoolean("LAVA_FIRE"));
-        flags.put(Flags.ITEM_PICKUP, regionFlagSection.getBoolean("ITEM_PICKUP"));
-        flags.put(Flags.ITEM_DROP, regionFlagSection.getBoolean("ITEM_DROP"));
-        flags.put(Flags.EXP_DROPS, regionFlagSection.getBoolean("EXP_DROPS"));
-        flags.put(Flags.HUNGER_DRAIN, regionFlagSection.getBoolean("HUNGER_DRAIN"));
-        gameRegion.setFlags(flags);
+//        ConfigurationSection regionFlagSection = instance.getConfig().getConfigurationSection("region_flags");
+//        HashMap<Flag<?>, Object> flags = new HashMap<>();
+//        flags.put(Flags.INVINCIBILITY, regionFlagSection.getBoolean("INVINCIBILITY"));
+//        flags.put(Flags.SLEEP, regionFlagSection.getBoolean("SLEEP"));
+//        flags.put(Flags.TRAMPLE_BLOCKS, regionFlagSection.getBoolean("TRAMPLE_BLOCKS"));
+//        flags.put(Flags.ITEM_FRAME_ROTATE, regionFlagSection.getBoolean("ITEM_FRAME_ROTATE"));
+//        flags.put(Flags.OTHER_EXPLOSION, regionFlagSection.getBoolean("OTHER_EXPLOSION"));
+//        flags.put(Flags.FIRE_SPREAD, regionFlagSection.getBoolean("FIRE_SPREAD"));
+//        flags.put(Flags.MOB_SPAWNING, regionFlagSection.getBoolean("MOB_SPAWNING"));
+//        flags.put(Flags.LAVA_FIRE, regionFlagSection.getBoolean("LAVA_FIRE"));
+//        flags.put(Flags.ITEM_PICKUP, regionFlagSection.getBoolean("ITEM_PICKUP"));
+//        flags.put(Flags.ITEM_DROP, regionFlagSection.getBoolean("ITEM_DROP"));
+//        flags.put(Flags.EXP_DROPS, regionFlagSection.getBoolean("EXP_DROPS"));
+//        flags.put(Flags.HUNGER_DRAIN, regionFlagSection.getBoolean("HUNGER_DRAIN"));
+//        gameRegion.setFlags(flags);
     }
 
     protected void start() {
@@ -72,21 +72,22 @@ public class Game implements Listener {
     public void tick() {
         ticks++;
 
-        if (!seekersReleased && ticks >= Config.HIDE_TIME) {
+        Config config = plugin.getConfigInstance();
+        if (!seekersReleased && ticks >= config.getHideTime()) {
             seekersReleased = true;
 
             SeekersReleasedEvent event = new SeekersReleasedEvent();
             if (!event.isCancelled()) {
                 Bukkit.getPluginManager().callEvent(event);
             }
-        } else if (!borderStartedShrink && ticks >= Config.BORDER_SHRINK_START_TIME) {
+        } else if (!borderStartedShrink && ticks >= config.getBorderShrinkStartTime()) {
             borderStartedShrink = true;
 
             BorderShrinkEvent event = new BorderShrinkEvent(true);
             if (!event.isCancelled()) {
                 Bukkit.getPluginManager().callEvent(event);
             }
-        } else if (!hidersStartGlow && ticks >= Config.GLOW_START_TIME) {
+        } else if (!hidersStartGlow && ticks >= config.getGlowStartTime()) {
             hidersStartGlow = true;
 
             HidersGlowEvent event = new HidersGlowEvent(true);
@@ -95,7 +96,7 @@ public class Game implements Listener {
             }
         }
 
-        if (ticks >= Config.SEEK_TIME) {
+        if (ticks >= config.getSeekTime()) {
             this.stop();
         }
     }

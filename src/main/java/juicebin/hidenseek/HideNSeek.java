@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 public final class HideNSeek extends JavaPlugin {
     public static HideNSeek INSTANCE;
+    private Config configInstance;
     private FileConfiguration teamConfig;
     private Commodore commodore;
     private Scoreboard scoreboard;
@@ -32,6 +33,7 @@ public final class HideNSeek extends JavaPlugin {
         this.saveDefaultConfig();
         this.createTeamsConfig();
 
+        this.configInstance = new Config(this);
         this.commodore = CommodoreProvider.getCommodore(this);
         this.scoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
 
@@ -120,5 +122,9 @@ public final class HideNSeek extends JavaPlugin {
             }
         }
         return false;
+    }
+
+    public Config getConfigInstance() {
+        return this.configInstance;
     }
 }

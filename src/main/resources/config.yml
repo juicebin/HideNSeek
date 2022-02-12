@@ -25,6 +25,13 @@ glow_start: 0
 # Default: 3600 (3:00)
 glow_interval: 3600
 
+# Lobby location details
+lobby:
+  world: world # Default: "world" - this refers to the primary world
+  x: 0.0 # Default: 0.0
+  y: 0.0 # Default: 0.0
+  z: 0.0 # Default: 0.0
+
 ##################################################################################
 ###                                REGION FLAGS                                ###
 ### -------------------------------------------------------------------------- ###

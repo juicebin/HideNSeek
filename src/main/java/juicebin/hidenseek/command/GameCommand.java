@@ -1,8 +1,14 @@
 package juicebin.hidenseek.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.session.SessionOwner;
 import juicebin.hidenseek.game.Game;
+import juicebin.hidenseek.game.GameHandler;
+import juicebin.hidenseek.util.MessageLevel;
+import juicebin.hidenseek.util.MessageUtils;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -36,20 +42,29 @@ public class GameCommand extends RegisteredCommand {
         // /game create <name> <hider-x> <hider-y> <hider-z> <seeker-x> <seeker-y> <seeker-z>
 
         if (sender instanceof Player player) {
-            int hiderX = Arguments.requireInt(sender, args, 0);
-            int hiderY = Arguments.requireInt(sender, args, 1);
-            int hiderZ = Arguments.requireInt(sender, args, 2);
-            int seekerX = Arguments.requireInt(sender, args, 3);
-            int seekerY = Arguments.requireInt(sender, args, 4);
-            int seekerZ = Arguments.requireInt(sender, args, 5);
+            String name = args[0];
+            int hiderX = Arguments.requireInt(player, args, 1);
+            int hiderY = Arguments.requireInt(player, args, 2);
+            int hiderZ = Arguments.requireInt(player, args, 3);
+            int seekerX = Arguments.requireInt(player, args, 4);
+            int seekerY = Arguments.requireInt(player, args, 5);
+            int seekerZ = Arguments.requireInt(player, args, 6);
 
-            Location lobbyLocation; // should be a main lobby from the plugin class or smth
             Location hiderLocation = new Location(player.getWorld(), hiderX, hiderY, hiderZ);
             Location seekerLocation = new Location(player.getWorld(), seekerX, seekerY, seekerZ);
-            WorldEdit.getInstance().getSessionManager().get(player);
-            
+//            Region region;
+//
+//            try {
+//                region = WorldEdit.getInstance().getSessionManager().get((SessionOwner) player).getSelection();
+//            } catch (IncompleteRegionException e) {
+//                MessageUtils.sendMessage(player, MessageLevel.ERROR, "You must have a region selected");
+//                return;
+//            }
+
+            GameHandler.registerGame(new Game(this.plugin, name, this.plugin.getConfigInstance().getLobbyLocation(), hiderLocation, seekerLocation));
+            MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Game \"" + name + "\" successfully registered");
         } else {
-            sender.sendMessage("You cannot execute this command as a non-player");
+            MessageUtils.sendMessage(sender, MessageLevel.ERROR, "You cannot execute this command as a non-player");
         }
     }
 

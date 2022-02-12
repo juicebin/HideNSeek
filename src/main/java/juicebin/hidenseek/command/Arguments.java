@@ -1,5 +1,7 @@
 package juicebin.hidenseek.command;
 
+import juicebin.hidenseek.util.MessageLevel;
+import juicebin.hidenseek.util.MessageUtils;
 import org.bukkit.command.CommandSender;
 
 public class Arguments {
@@ -17,7 +19,7 @@ public class Arguments {
     }
 
     private static void sendErrorMessage(CommandSender sender, int index, String type, String defaultValue) {
-        sender.sendMessage("Argument " + index + " needs to be an " + type + " type... defaulting to " + defaultValue);
+        MessageUtils.sendMessage(sender, MessageLevel.ERROR,"Argument " + index + " needs to be an " + type + " type... defaulting to " + defaultValue);
     }
 
 }
