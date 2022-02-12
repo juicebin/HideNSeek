@@ -1,6 +1,7 @@
 package juicebin.hidenseek;
 
 import juicebin.hidenseek.command.Commands;
+import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
@@ -35,12 +36,18 @@ public final class HideNSeek extends JavaPlugin {
         this.saveDefaultConfig();
         this.createTeamsConfig();
 
+        if (configInstance.isDebugMode()) {
+            new DebugLoggingProvider().enableDebugLogging();
+        }
+
         this.configInstance = new Config(this);
         this.commodore = CommodoreProvider.getCommodore(this);
         this.scoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
 
         // Register listeners
-        Listeners listeners = new Listeners();
+        Listeners listeners = new Listeners(
+                new GameListener(this)
+        );
         listeners.register(this);
 
         // Register commands
@@ -128,11 +135,5 @@ public final class HideNSeek extends JavaPlugin {
 
     public Config getConfigInstance() {
         return this.configInstance;
-    }
-
-    public void debug(String msg) {
-        if (configInstance.isDebugMode()) {
-            Bukkit.getLogger().log(Level.INFO, "[DEBUG] " + msg);
-        }
     }
 }

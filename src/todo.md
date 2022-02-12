@@ -9,6 +9,13 @@
 - rounds
 - point system??? prob just wins/losses
 
+# TODO
+- [ ] Fix command system
+- [ ] Scoreboard stuff
+- [ ] Make modular event system
+    - BorderShrinkEvent, HidersGlowEvent, SeekersReleasedEvent are all events that could
+      be configurable through the config
+
 # Testing
 - [ ] Test command system
 - [ ] Test game system

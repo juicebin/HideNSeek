@@ -1,5 +1,6 @@
 package juicebin.hidenseek.event;
 
+import juicebin.hidenseek.game.Game;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -8,6 +9,11 @@ import org.jetbrains.annotations.NotNull;
 public abstract class GameEvent extends Event implements Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
     protected boolean isCancelled;
+    private final Game game;
+
+    public GameEvent(Game game) {
+        this.game = game;
+    }
 
     @Override
     public boolean isCancelled() {
@@ -26,5 +32,9 @@ public abstract class GameEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return HANDLER_LIST;
+    }
+
+    public Game getGame() {
+        return game;
     }
 }
