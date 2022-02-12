@@ -65,12 +65,14 @@ public abstract class RegisteredCommand implements CommandExecutor {
                         // e.g. /test target-cmd
                         // The name of the command, test, is equal to the subcommand's parent's name, test
                         // The first argument, target-cmd, is equal to the name of the subcommand, target-cmd
+
+
                     } else if (args[0].equals(subCommand.parent())) {
                         // If the first argument is equal to the subcommand's parent's name
                         // e.g. /test cmd target-cmd
                         // The first argument, cmd, is equal to target-cmd's parent's name, cmd
                     }
-
+                    
                     if (command.getName().equals(subCommand.parent()) && args[0].equals(subCommand.name())) {
                         try {
                             this.checkSubcommands(sender, command, label, Arrays.copyOfRange(args, 1, args.length + 1));

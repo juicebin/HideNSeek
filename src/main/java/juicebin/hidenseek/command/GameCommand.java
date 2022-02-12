@@ -40,7 +40,7 @@ public class GameCommand extends RegisteredCommand {
             Location hiderLocation = new Location(player.getWorld(), hiderX, hiderY, hiderZ);
             Location seekerLocation = new Location(player.getWorld(), seekerX, seekerY, seekerZ);
 
-            GameHandler.registerGame(new Game(this.plugin, name, this.plugin.getConfigInstance().getLobbyLocation(), hiderLocation, seekerLocation));
+            GameHandler.registerGame(new Game(this.plugin, name, player.getWorld(), this.plugin.getConfigInstance().getLobbyLocation(), hiderLocation, seekerLocation));
             MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Game \"" + name + "\" successfully registered");
         } else {
             MessageUtils.sendMessage(sender, MessageLevel.ERROR, "You cannot execute this command as a non-player");

@@ -45,8 +45,9 @@ public class Game implements Listener {
         this.seekerSpawn = seekerSpawn;
         this.scoreboard = instance.getServer().getScoreboardManager().getNewScoreboard();
 
-        // Initialize hiding teams
         FileConfiguration teamConfig = instance.getTeamConfig();
+
+        // Initialize hiding teams
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
             String teamName = "hiders-" + key;
