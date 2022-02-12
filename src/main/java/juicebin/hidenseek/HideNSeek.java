@@ -4,6 +4,7 @@ import juicebin.hidenseek.command.Commands;
 import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -17,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public final class HideNSeek extends JavaPlugin {
@@ -126,5 +128,9 @@ public final class HideNSeek extends JavaPlugin {
 
     public Config getConfigInstance() {
         return this.configInstance;
+    }
+
+    public static void debug(String msg) {
+        Bukkit.getLogger().log(Level.INFO, "[DEBUG] " + msg);
     }
 }

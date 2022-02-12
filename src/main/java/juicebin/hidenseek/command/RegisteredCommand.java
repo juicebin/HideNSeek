@@ -1,14 +1,17 @@
 package juicebin.hidenseek.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.util.ClassUtils;
 import me.lucko.commodore.CommodoreProvider;
+import me.lucko.commodore.file.CommodoreFileFormat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -25,7 +28,12 @@ public abstract class RegisteredCommand implements CommandExecutor {
             pluginCommand.setExecutor(this);
 
             if (CommodoreProvider.isSupported()) {
-                instance.getCommodore().register(pluginCommand, this.getArgumentBuilder());
+                try {
+                    LiteralCommandNode<?> commandNode = CommodoreFileFormat.parse(plugin.getResource(this.getName() + ".commodore"));
+                    instance.getCommodore().register(pluginCommand, commandNode);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }, () -> {
             // TODO: Exception handling
@@ -33,8 +41,6 @@ public abstract class RegisteredCommand implements CommandExecutor {
     }
 
     protected abstract String getName();
-
-    protected abstract LiteralArgumentBuilder<?> getArgumentBuilder();
 
     protected abstract void run(CommandSender sender, Command command, String label, String[] args);
 

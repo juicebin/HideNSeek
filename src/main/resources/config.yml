@@ -31,3 +31,6 @@ lobby:
   x: 0.0 # Default: 0.0
   y: 0.0 # Default: 0.0
   z: 0.0 # Default: 0.0
+
+# Debug mode
+debug: false

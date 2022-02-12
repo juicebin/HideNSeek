@@ -10,7 +10,8 @@
 - point system??? prob just wins/losses
 
 # Testing
-- [ ] Test Config.java functionality
+- [ ] Test command system
+- [ ] Test game system
 
 # Commands
 - [ ] Team Management
