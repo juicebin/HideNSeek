@@ -30,7 +30,6 @@ public final class HideNSeek extends JavaPlugin {
     private Config configInstance;
     private FileConfiguration teamConfig;
     private Commodore commodore;
-    private Scoreboard scoreboard;
 
     @Override
     public void onEnable() {
@@ -45,7 +44,6 @@ public final class HideNSeek extends JavaPlugin {
 
         this.configInstance = new Config(this);
         this.commodore = CommodoreProvider.getCommodore(this);
-        this.scoreboard = this.getServer().getScoreboardManager().getNewScoreboard();
 
         // Register listeners
         Listeners listeners = new Listeners(
@@ -56,32 +54,6 @@ public final class HideNSeek extends JavaPlugin {
         // Register commands
         Commands commands = new Commands();
         commands.register(this);
-
-        // Initialize hiding teams
-        ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
-        for (String key : hiders.getKeys(false)) {
-            String teamName = "hiders-" + key;
-            this.scoreboard.registerNewTeam(teamName);
-            Team team = this.scoreboard.getTeam(key);
-            if (team == null) {
-                // TODO: SEND ERROR
-                return;
-            }
-            team.addEntries(hiders.getStringList(key));
-        }
-
-        // Initialize seeking team
-        this.scoreboard.registerNewTeam("seekers");
-        Team team = this.scoreboard.getTeam("seekers");
-        if (team == null) {
-            // TODO: SEND ERROR
-            return;
-        }
-        team.addEntries(teamConfig.getStringList("seekers"));
-
-        // Initialize scoreboard objectives
-        Objective objective = this.scoreboard.registerNewObjective("time", "dummy", Component.text("Time"));
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     @Override
@@ -110,34 +82,6 @@ public final class HideNSeek extends JavaPlugin {
 
     public FileConfiguration getTeamConfig() {
         return teamConfig;
-    }
-
-    public Scoreboard getScoreboard() {
-        return scoreboard;
-    }
-
-    public boolean isSeeker(Player player) {
-        Team seekers = this.scoreboard.getTeam("seekers");
-        if (seekers == null) {
-            // TODO: Send error
-            return false;
-        }
-        return seekers.hasPlayer(player);
-    }
-
-    public boolean isHider(Player player) {
-        List<Set<String>> entryList = this.scoreboard.getTeams()
-                .stream()
-                .filter(t -> t.getName().startsWith("hiders-"))
-                .map(Team::getEntries)
-                .collect(Collectors.toList());
-
-        for (Set<String> strings : entryList) {
-            if (strings.contains(player.getName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public Config getConfigInstance() {

@@ -4,17 +4,23 @@ import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.*;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Game implements Listener {
     private final HideNSeek plugin;
@@ -23,6 +29,7 @@ public class Game implements Listener {
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
+    private final Scoreboard scoreboard;
     private boolean active;
     private boolean seekersReleased;
     private boolean borderStartedShrink;
@@ -36,6 +43,34 @@ public class Game implements Listener {
         this.lobbyLocation = lobbyLocation;
         this.hiderSpawn = hiderSpawn;
         this.seekerSpawn = seekerSpawn;
+        this.scoreboard = instance.getServer().getScoreboardManager().getNewScoreboard();
+
+        // Initialize hiding teams
+        FileConfiguration teamConfig = instance.getTeamConfig();
+        ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
+        for (String key : hiders.getKeys(false)) {
+            String teamName = "hiders-" + key;
+            this.scoreboard.registerNewTeam(teamName);
+            Team team = this.scoreboard.getTeam(key);
+            if (team == null) {
+                // TODO: SEND ERROR
+                return;
+            }
+            team.addEntries(hiders.getStringList(key));
+        }
+
+        // Initialize seeking team
+        this.scoreboard.registerNewTeam("seekers");
+        Team team = this.scoreboard.getTeam("seekers");
+        if (team == null) {
+            // TODO: SEND ERROR
+            return;
+        }
+        team.addEntries(teamConfig.getStringList("seekers"));
+
+        // Initialize scoreboard objectives
+        Objective objective = this.scoreboard.registerNewObjective("time", "dummy", Component.text("Time"));
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     protected void start() {
@@ -62,7 +97,7 @@ public class Game implements Listener {
         ticks++;
 
         Config config = plugin.getConfigInstance();
-        Objective objective = plugin.getScoreboard().getObjective("time");
+        Objective objective = this.scoreboard.getObjective("time");
 
         if (objective != null) {
             Score score = objective.getScore("");
@@ -138,6 +173,30 @@ public class Game implements Listener {
         return world;
     }
 
+    public boolean isSeeker(Player player) {
+        Team seekers = this.scoreboard.getTeam("seekers");
+        if (seekers == null) {
+            // TODO: Send error
+            return false;
+        }
+        return seekers.hasPlayer(player);
+    }
+
+    public boolean isHider(Player player) {
+        List<Set<String>> entryList = this.scoreboard.getTeams()
+                .stream()
+                .filter(t -> t.getName().startsWith("hiders-"))
+                .map(Team::getEntries)
+                .collect(Collectors.toList());
+
+        for (Set<String> strings : entryList) {
+            if (strings.contains(player.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @EventHandler
     public void onTick(ServerTickStartEvent event) {
         tick();
@@ -152,7 +211,7 @@ public class Game implements Listener {
         if (targetEntity.getWorld() != this.world) return;
 
         if (targetEntity instanceof Player target && attackerEntity instanceof Player attacker) {
-            if (plugin.isSeeker(attacker) && plugin.isHider(target)) {
+            if (this.isSeeker(attacker) && this.isHider(target)) {
                 // If a seeker attacks a hider
                 SeekerTagHiderEvent eventToCall = new SeekerTagHiderEvent(this, attacker, target);
                 if (!eventToCall.isCancelled()) {
