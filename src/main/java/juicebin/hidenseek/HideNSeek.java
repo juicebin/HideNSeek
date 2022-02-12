@@ -5,6 +5,7 @@ import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -12,6 +13,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -75,6 +78,10 @@ public final class HideNSeek extends JavaPlugin {
             return;
         }
         team.addEntries(teamConfig.getStringList("seekers"));
+
+        // Initialize scoreboard objectives
+        Objective objective = this.scoreboard.registerNewObjective("time", "dummy", Component.text("Time"));
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     @Override

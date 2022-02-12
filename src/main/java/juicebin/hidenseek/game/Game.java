@@ -13,6 +13,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
 
 public class Game implements Listener {
     private final HideNSeek plugin;
@@ -60,8 +62,11 @@ public class Game implements Listener {
         ticks++;
 
         Config config = plugin.getConfigInstance();
+        Objective objective = plugin.getScoreboard().getObjective("time");
 
-        plugin.getScoreboard().getObjective("time");
+        if (objective != null) {
+            Score score = objective.getScore("");
+        }
 
         if (!seekersReleased && ticks >= config.getHideTime()) {
             seekersReleased = true;
