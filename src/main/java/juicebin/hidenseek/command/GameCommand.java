@@ -52,14 +52,6 @@ public class GameCommand extends RegisteredCommand {
 
             Location hiderLocation = new Location(player.getWorld(), hiderX, hiderY, hiderZ);
             Location seekerLocation = new Location(player.getWorld(), seekerX, seekerY, seekerZ);
-//            Region region;
-//
-//            try {
-//                region = WorldEdit.getInstance().getSessionManager().get((SessionOwner) player).getSelection();
-//            } catch (IncompleteRegionException e) {
-//                MessageUtils.sendMessage(player, MessageLevel.ERROR, "You must have a region selected");
-//                return;
-//            }
 
             GameHandler.registerGame(new Game(this.plugin, name, this.plugin.getConfigInstance().getLobbyLocation(), hiderLocation, seekerLocation));
             MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Game \"" + name + "\" successfully registered");
