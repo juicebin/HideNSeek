@@ -22,8 +22,6 @@ repositories {
 dependencies {
     compileOnly 'org.jetbrains:annotations:22.0.0'
     compileOnly "io.papermc.paper:paper-api:${paper_version}"
-//    compileOnly "com.sk89q.worldedit:worldedit:${worldedit_version}"
-    implementation "com.sk89q.worldguard:worldguard-bukkit:${worldguard_version}"
     implementation "me.lucko:commodore:${commodore_version}"
 }
 

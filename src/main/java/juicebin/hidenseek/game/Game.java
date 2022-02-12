@@ -1,20 +1,14 @@
 package juicebin.hidenseek.game;
 
 import com.destroystokyo.paper.event.server.ServerTickStartEvent;
-import com.sk89q.worldguard.protection.flags.Flag;
-import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-
-import java.util.HashMap;
 
 public class Game implements Listener {
     private final HideNSeek plugin;
