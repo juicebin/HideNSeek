@@ -1,18 +1,20 @@
 package juicebin.hidenseek.util;
 
-import org.bukkit.Color;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import org.jetbrains.annotations.Nullable;
 
 public enum MessageLevel {
-    ERROR(Color.RED),
-    SUCCESS(Color.GREEN);
+    ERROR(NamedTextColor.RED),
+    SUCCESS(NamedTextColor.GREEN);
 
-    private final Color color;
+    private final TextColor color;
 
-    MessageLevel(Color color) {
+    MessageLevel(TextColor color) {
         this.color = color;
     }
 
-    public Color getColor() {
+    public @Nullable TextColor getColor() {
         return this.color;
     }
 }

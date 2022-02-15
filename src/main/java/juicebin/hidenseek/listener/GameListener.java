@@ -7,6 +7,8 @@ import org.bukkit.event.EventHandler;
 
 import java.util.logging.Level;
 
+import static juicebin.hidenseek.HideNSeek.debug;
+
 public class GameListener extends RegisteredListener {
     private final HideNSeek plugin;
 
@@ -16,32 +18,32 @@ public class GameListener extends RegisteredListener {
 
     @EventHandler
     public void onGameStartEvent(GameStartEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: GameStartEvent");
+        debug("Event called: GameStartEvent");
     }
 
     @EventHandler
     public void onGameStopEvent(GameStopEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: GameStopEvent");
+        debug("Event called: GameStopEvent");
     }
 
     @EventHandler
     public void onHidersGlowEvent(HidersGlowEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: HidersGlowEvent");
+        debug("Event called: HidersGlowEvent");
     }
 
     @EventHandler
     public void seekersReleasedEvent(SeekersReleasedEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: SeekersReleasedEvent");
+        debug("Event called: SeekersReleasedEvent");
     }
 
     @EventHandler
     public void onBorderShrinkEvent(BorderShrinkEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: BorderShrinkEvent");
+        debug("Event called: BorderShrinkEvent");
     }
 
     @EventHandler
     public void onSeekerTagHider(SeekerTagHiderEvent event) {
-        Bukkit.getLogger().log(Level.CONFIG, "Event called: SeekerTagHiderEvent");
+        debug("Event called: SeekerTagHiderEvent");
     }
 
 }

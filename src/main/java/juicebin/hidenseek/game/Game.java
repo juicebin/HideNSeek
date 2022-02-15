@@ -20,6 +20,7 @@ import org.bukkit.scoreboard.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class Game implements Listener {
@@ -74,7 +75,7 @@ public class Game implements Listener {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
-    protected void start() {
+    public void start() {
         ticks = 0;
         active = true;
         seekersReleased = false;
@@ -82,9 +83,12 @@ public class Game implements Listener {
         hidersStartGlow = false;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
+
+        Bukkit.getLogger().log(Level.INFO, "Starting registered game \"" + id + "\"...");
+
     }
 
-    protected void stop() {
+    public void stop() {
         ticks = 0;
         active = false;
         seekersReleased = false;
@@ -92,6 +96,9 @@ public class Game implements Listener {
         hidersStartGlow = false;
         HandlerList.unregisterAll(this);
         Bukkit.getPluginManager().callEvent(new GameStopEvent(this));
+
+        Bukkit.getLogger().log(Level.INFO, "Stopping registered game \"" + id + "\"...");
+
     }
 
     public void tick() {

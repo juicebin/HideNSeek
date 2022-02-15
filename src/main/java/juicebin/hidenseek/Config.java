@@ -47,11 +47,6 @@ public final class Config {
                 config.getDouble("lobby.z")
         );
 
-        ConfigurationSection regionFlags = config.getConfigurationSection("region_flags");
-        for (String key : regionFlags.getKeys(false)) {
-            regionFlags1.put(key, regionFlags.getBoolean(key));
-        }
-
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
             hiderNamesAll.addAll(hiders.getStringList(key));

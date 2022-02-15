@@ -1,35 +1,34 @@
 package juicebin.hidenseek;
 
 import juicebin.hidenseek.command.Commands;
+import juicebin.hidenseek.command.GameCommand;
+import juicebin.hidenseek.game.GameHandler;
 import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public final class HideNSeek extends JavaPlugin {
     public static HideNSeek INSTANCE;
     private Config configInstance;
     private FileConfiguration teamConfig;
     private Commodore commodore;
+    private GameHandler gameHandler;
 
     @Override
     public void onEnable() {
@@ -38,12 +37,9 @@ public final class HideNSeek extends JavaPlugin {
         this.saveDefaultConfig();
         this.createTeamsConfig();
 
-        if (configInstance.isDebugMode()) {
-            new DebugLoggingProvider().enableDebugLogging();
-        }
-
         this.configInstance = new Config(this);
         this.commodore = CommodoreProvider.getCommodore(this);
+        this.gameHandler = new GameHandler();
 
         // Register listeners
         Listeners listeners = new Listeners(
@@ -52,8 +48,11 @@ public final class HideNSeek extends JavaPlugin {
         listeners.register(this);
 
         // Register commands
-        Commands commands = new Commands();
+        Commands commands = new Commands(
+                new GameCommand()
+        );
         commands.register(this);
+
     }
 
     @Override
@@ -86,5 +85,26 @@ public final class HideNSeek extends JavaPlugin {
 
     public Config getConfigInstance() {
         return this.configInstance;
+    }
+
+    public static void debug(String msg) {
+        if (INSTANCE.getConfigInstance().isDebugMode()) {
+            Bukkit.getLogger().log(Level.CONFIG, msg);
+        }
+    }
+
+    public GameHandler getGameHandler() {
+        return gameHandler;
+    }
+
+    public static TextComponent getPrefix() {
+        return Component.text().style(Style.style(TextDecoration.BOLD))
+                .append(Component.text("[").color(NamedTextColor.DARK_GRAY))
+                .append(Component.text("H").color(NamedTextColor.BLUE))
+                .append(Component.text("&").color(NamedTextColor.WHITE))
+                .append(Component.text("S").color(NamedTextColor.YELLOW))
+                .append(Component.text("]").color(NamedTextColor.DARK_GRAY))
+                .style(Style.empty())
+                .build();
     }
 }

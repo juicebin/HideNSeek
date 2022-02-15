@@ -1,8 +1,9 @@
 name: HideNSeek
-version: 1.0.0
+version: '${project.version}'
 main: juicebin.hidenseek.HideNSeek
 api-version: 1.18
-description: Hide 'N' Seek for DotWavPresents
+author: juicebin
+prefix: HideNSeek
 permissions:
   hidenseek.commands.game:
     default: op
@@ -14,8 +15,8 @@ permissions:
     default: op
     description: Gives permission to all commands from HideNSeek
     children:
-      - hidenseek.commands.game
-      - hidenseek.commands.team
+      hidenseek.commands.game: true
+      hidenseek.commands.team: true
 commands:
   game:
     permission: hidenseek.commands.game

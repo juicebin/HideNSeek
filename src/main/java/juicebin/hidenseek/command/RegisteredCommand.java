@@ -27,12 +27,7 @@ public abstract class RegisteredCommand implements CommandExecutor {
             pluginCommand.setExecutor(this);
 
             if (CommodoreProvider.isSupported()) {
-                try {
-                    LiteralCommandNode<?> commandNode = CommodoreFileFormat.parse(plugin.getResource(this.getName() + ".commodore"));
-                    instance.getCommodore().register(pluginCommand, commandNode);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                instance.getCommodore().register(pluginCommand, this.getLiteralCommandNode());
             }
         }, () -> {
             // TODO: Exception handling
@@ -51,6 +46,8 @@ public abstract class RegisteredCommand implements CommandExecutor {
 
         return true;
     }
+
+    public abstract LiteralCommandNode<?> getLiteralCommandNode();
 
     private boolean checkSubcommands(CommandSender sender, Command command, String commandName, String[] args) {
         List<Method> methodList = ClassUtils.getMethodsAnnotatedWith(this.getClass(), SubCommand.class)
