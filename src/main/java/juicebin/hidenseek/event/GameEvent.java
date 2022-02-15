@@ -4,7 +4,6 @@ import juicebin.hidenseek.game.Game;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class GameEvent extends Event implements Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();

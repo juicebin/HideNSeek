@@ -1,0 +1,36 @@
+# The amount of time players have to hide without the seekers (in ticks)
+# Default: 4200 (3:30)
+hide_time: 4200
+
+# The amount of time seekers have to seek (in ticks)
+# Default: 24000 (20:00)
+seek_time: 24000
+
+# How much time it takes for the border to start shrinking (in ticks)
+# Default: 12000 (10:00)
+border_start_shrink: 12000
+
+# The amount of time in-between each border shrinking (in ticks)
+border_shrink_interval:
+
+# The amount of blocks the border shrinks by
+# Default: 1
+border_shrink_size: 1
+
+# How much time it takes for the players to start glowing (in ticks)
+# Default: 0 (starts immediately)
+glow_start: 0
+
+# The amount of time in-between each time the hiders glow (in ticks)
+# Default: 3600 (3:00)
+glow_interval: 3600
+
+# Lobby location details
+lobby:
+  world: world # Default: "world" - this refers to the primary world
+  x: 0.0 # Default: 0.0
+  y: 0.0 # Default: 0.0
+  z: 0.0 # Default: 0.0
+
+# Debug mode
+debug: false

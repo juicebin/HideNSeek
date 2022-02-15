@@ -1,5 +1,9 @@
 package juicebin.hidenseek;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
+import org.bukkit.plugin.Plugin;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
@@ -12,10 +16,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.plugin.Plugin;
 
 /**
  * Enables debug logging for Bukkit/Spigot plugins.

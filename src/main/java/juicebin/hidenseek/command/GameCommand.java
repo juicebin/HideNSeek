@@ -1,6 +1,5 @@
 package juicebin.hidenseek.command;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.game.GameHandler;
 import juicebin.hidenseek.util.MessageLevel;
@@ -9,9 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
-import static com.mojang.brigadier.builder.RequiredArgumentBuilder.argument;
 
 public class GameCommand extends RegisteredCommand {
     @Override

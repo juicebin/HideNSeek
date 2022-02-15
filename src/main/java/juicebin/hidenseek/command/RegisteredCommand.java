@@ -1,6 +1,5 @@
 package juicebin.hidenseek.command;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.util.ClassUtils;

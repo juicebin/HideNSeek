@@ -1,6 +1,5 @@
 package juicebin.hidenseek.util;
 
-import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

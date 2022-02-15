@@ -23,4 +23,3 @@
 # Commands
 - [ ] Team Management
 - [ ] Game Management
-- 
