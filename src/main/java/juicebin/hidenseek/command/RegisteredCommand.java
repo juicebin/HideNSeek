@@ -8,6 +8,7 @@ import me.lucko.commodore.file.CommodoreFileFormat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class RegisteredCommand implements CommandExecutor {
+public abstract class RegisteredCommand implements TabExecutor {
     protected HideNSeek plugin;
 
     public void register(HideNSeek instance) {
@@ -26,9 +27,9 @@ public abstract class RegisteredCommand implements CommandExecutor {
         Optional.ofNullable(instance.getCommand(this.getName())).ifPresentOrElse(pluginCommand -> {
             pluginCommand.setExecutor(this);
 
-            if (CommodoreProvider.isSupported()) {
-                instance.getCommodore().register(pluginCommand, this.getLiteralCommandNode());
-            }
+//            if (CommodoreProvider.isSupported()) {
+//                instance.getCommodore().register(pluginCommand, this.getLiteralCommandNode());
+//            }
         }, () -> {
             // TODO: Exception handling
         });

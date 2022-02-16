@@ -20,6 +20,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static com.mojang.brigadier.builder.RequiredArgumentBuilder.argument;
@@ -105,15 +108,58 @@ public class GameCommand extends RegisteredCommand {
     }
 
     @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) return List.of();
+
+        Location location = player.getLocation();
+
+        if (args[0].equalsIgnoreCase("create")) {
+            return switch (args.length) {
+                case 2 -> List.of("name");
+                case 3, 6 -> List.of(String.valueOf(location.getX()));
+                case 4, 7 -> List.of(String.valueOf(location.getY()));
+                case 5, 8 -> List.of(String.valueOf(location.getZ()));
+                default -> List.of();
+            };
+        } else if (args[0].equalsIgnoreCase("start")) {
+
+        } else if (args[0].equalsIgnoreCase("stop")) {
+
+        } else if (args[0].equalsIgnoreCase("view")) {
+
+        } else if (args[0].equalsIgnoreCase("list")) {
+
+        }
+
+        return List.of("create", "start", "stop", "view", "list");
+    }
+
+    @Override
     public LiteralCommandNode<?> getLiteralCommandNode() {
+        DoubleArgumentType xPosArg = DoubleArgumentType.doubleArg();
+        DoubleArgumentType yPosArg = DoubleArgumentType.doubleArg();
+        DoubleArgumentType zPosArg = DoubleArgumentType.doubleArg();
+
+        xPosArg.getExamples().add("");
+
         LiteralArgumentBuilder<?> argumentBuilder = literal("game")
-            .then(literal("create")
-                    .then(argument("name", StringArgumentType.word()))
-                    .then(argument("hider-x", DoubleArgumentType.doubleArg()))
-            ).then(literal("start")
-            ).then(literal("stop")
-            ).then(literal("list")
-            ).then(literal("view"));
+                .then(literal("create")
+                        .then(argument("name", StringArgumentType.word())
+                        .then(argument("hider-x", xPosArg)
+                        .then(argument("hider-y", yPosArg)
+                        .then(argument("hider-z", yPosArg)
+                        .then(argument("seeker-z", zPosArg)
+                        .then(argument("seeker-x", xPosArg)
+                        .then(argument("seeker-y", yPosArg)
+                        .then(argument("seeker-z", zPosArg)
+                        ))))))))
+                ).then(literal("start")
+                        .then(argument("name", StringArgumentType.word()))
+                ).then(literal("stop")
+                        .then(argument("name", StringArgumentType.word()))
+                ).then(literal("view")
+                        .then(argument("name", StringArgumentType.word()))
+                ).then(literal("list"));
 
         return argumentBuilder.build();
     }
