@@ -5,14 +5,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class Config {
     private final FileConfiguration config;
     private final int hideTime;
-    private final int seekTime;
+    private final int matchTime;
     private final int borderShrinkStartTime;
     private final int borderShrinkInterval;
     private final double borderShrinkSize;
@@ -30,13 +28,12 @@ public final class Config {
         this.config = config;
 
         this.hideTime = config.getInt("hide_time");
-        this.seekTime = config.getInt("seek_time");
+        this.matchTime = config.getInt("match_time");
         this.borderShrinkStartTime = config.getInt("border_start_shrink");
         this.borderShrinkInterval = config.getInt("border_shrink_interval");
         this.borderShrinkSize = config.getDouble("border_shrink_size");
         this.glowStartTime = config.getInt("glow_start");
         this.glowInterval = config.getInt("glow_interval");
-        Map<String, Boolean> regionFlags1 = new HashMap<>();
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
         this.isDebugMode = config.isBoolean("debug");
@@ -61,8 +58,8 @@ public final class Config {
         return hideTime;
     }
 
-    public int getSeekTime() {
-        return seekTime;
+    public int getMatchTime() {
+        return matchTime;
     }
 
     public int getBorderShrinkStartTime() {

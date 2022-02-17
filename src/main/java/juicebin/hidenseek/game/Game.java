@@ -4,9 +4,15 @@ import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
+import juicebin.hidenseek.util.ScoreHelper;
+import juicebin.hidenseek.util.TickUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,12 +24,22 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scoreboard.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import static juicebin.hidenseek.HideNSeek.log;
+
 public class Game implements Listener {
+    private static final TextComponent title = Component.text()
+            .append(Component.text("Ikea").color(TextColor.color(235, 192, 0)))
+            .append(Component.space())
+            .append(Component.text("Hide N Seek").color(TextColor.color(25, 44, 255)))
+            .build();
+    private final List<UUID> taggedPlayers = new ArrayList<>();
     private final HideNSeek plugin;
     private final World world;
     private final String id;
@@ -31,6 +47,8 @@ public class Game implements Listener {
     private final Location hiderSpawn;
     private final Location seekerSpawn;
     private final Scoreboard scoreboard;
+    private final Config config;
+    private final int matchTime;
     private boolean active;
     private boolean seekersReleased;
     private boolean borderStartedShrink;
@@ -44,7 +62,9 @@ public class Game implements Listener {
         this.lobbyLocation = lobbyLocation;
         this.hiderSpawn = hiderSpawn;
         this.seekerSpawn = seekerSpawn;
-        this.scoreboard = instance.getServer().getScoreboardManager().getNewScoreboard();
+        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        this.config = plugin.getConfigInstance();
+        this.matchTime = plugin.getConfigInstance().getMatchTime();
 
         FileConfiguration teamConfig = instance.getTeamConfig();
 
@@ -52,66 +72,70 @@ public class Game implements Listener {
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
             String teamName = "hiders-" + key;
-            this.scoreboard.registerNewTeam(teamName);
-            Team team = this.scoreboard.getTeam(key);
-            if (team == null) {
-                // TODO: SEND ERROR
-                return;
-            }
-            team.addEntries(hiders.getStringList(key));
+            Team team = this.scoreboard.registerNewTeam(teamName);
+            key = "hiders." + key;
+            NamedTextColor color = NamedTextColor.NAMES.value(teamConfig.getString(key + ".color"));
+            team.displayName(Component.text(teamConfig.getString(key + ".display-name")));
+            team.color(color);
+            team.addEntries(hiders.getStringList(key + ".players"));
         }
 
         // Initialize seeking team
-        this.scoreboard.registerNewTeam("seekers");
-        Team team = this.scoreboard.getTeam("seekers");
-        if (team == null) {
-            // TODO: SEND ERROR
-            return;
-        }
-        team.addEntries(teamConfig.getStringList("seekers"));
-
-        // Initialize scoreboard objectives
-        Objective objective = this.scoreboard.registerNewObjective("time", "dummy", Component.text("Time"));
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        Team team = this.scoreboard.registerNewTeam("seekers");
+        NamedTextColor color = NamedTextColor.NAMES.value(teamConfig.getString("seekers.color"));
+        team.displayName(Component.text(teamConfig.getString("seekers.display-name")));
+        team.color(color);
+        team.addEntries(teamConfig.getStringList("seekers.players"));
     }
 
     public void start() {
-        ticks = 0;
+        ticks = config.getMatchTime();
         active = true;
         seekersReleased = false;
         borderStartedShrink = false;
         hidersStartGlow = false;
+
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
 
-        Bukkit.getLogger().log(Level.INFO, "Starting registered game \"" + id + "\"...");
+        // Show scoreboard
+        for (Player player : this.getPlayers()) {
+            ScoreHelper scoreHelper = ScoreHelper.createScore(player);
+            scoreHelper.setTitle(title);
+        }
 
+        log(Level.INFO, "Starting registered game \"" + id + "\"...");
     }
 
     public void stop() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getPluginManager().callEvent(new GameStopEvent(this));
+
         ticks = 0;
         active = false;
         seekersReleased = false;
         borderStartedShrink = false;
         hidersStartGlow = false;
-        HandlerList.unregisterAll(this);
-        Bukkit.getPluginManager().callEvent(new GameStopEvent(this));
 
-        Bukkit.getLogger().log(Level.INFO, "Stopping registered game \"" + id + "\"...");
+        // Hide scoreboard
+        for (Player player : this.getPlayers()) {
+            ScoreHelper.removeScore(player);
+        }
 
+        log(Level.INFO, "Stopping registered game \"" + id + "\"...");
     }
 
     public void tick() {
-        ticks++;
+        ticks--;
 
-        Config config = plugin.getConfigInstance();
-        Objective objective = this.scoreboard.getObjective("time");
+        if (!this.active) return;
 
-        if (objective != null) {
-            Score score = objective.getScore("");
+        for (Player player : this.getPlayers()) {
+            ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
+            scoreHelper.setSlot(1, "&cTime Left: &r" + TickUtils.convertTicksToTime(ticks));
         }
 
-        if (!seekersReleased && ticks >= config.getHideTime()) {
+        if (!seekersReleased && ticks <= config.getHideTime()) {
             seekersReleased = true;
 
             SeekersReleasedEvent event = new SeekersReleasedEvent(this);
@@ -120,7 +144,7 @@ public class Game implements Listener {
             }
         }
 
-        if (ticks >= config.getBorderShrinkStartTime()) {
+        if (ticks <= config.getBorderShrinkStartTime()) {
             if (!borderStartedShrink) {
                 borderStartedShrink = true;
 
@@ -128,7 +152,7 @@ public class Game implements Listener {
                 if (!event.isCancelled()) {
                     Bukkit.getPluginManager().callEvent(event);
                 }
-            } else if ((ticks - config.getBorderShrinkStartTime()) % config.getBorderShrinkInterval() == 0) {
+            } else if ((ticks - (matchTime - config.getBorderShrinkStartTime())) % config.getBorderShrinkInterval() == 0) {
                 BorderShrinkEvent event = new BorderShrinkEvent(this, false);
                 if (!event.isCancelled()) {
                     Bukkit.getPluginManager().callEvent(event);
@@ -136,7 +160,7 @@ public class Game implements Listener {
             }
         }
 
-        if (ticks >= config.getGlowStartTime()) {
+        if (ticks <= config.getGlowStartTime()) {
             if (!hidersStartGlow) {
                 hidersStartGlow = true;
 
@@ -144,7 +168,7 @@ public class Game implements Listener {
                 if (!event.isCancelled()) {
                     Bukkit.getPluginManager().callEvent(event);
                 }
-            } else if ((ticks - config.getGlowStartTime()) % config.getGlowInterval() == 0) {
+            } else if ((ticks - (matchTime - config.getGlowStartTime())) % config.getGlowInterval() == 0) {
                 HidersGlowEvent event = new HidersGlowEvent(this, true);
                 if (!event.isCancelled()) {
                     Bukkit.getPluginManager().callEvent(event);
@@ -152,7 +176,7 @@ public class Game implements Listener {
             }
         }
 
-        if (ticks >= config.getSeekTime()) {
+        if (ticks <= 0) {
             this.stop();
         }
     }
@@ -181,6 +205,18 @@ public class Game implements Listener {
         return world;
     }
 
+    public boolean isTagged(Player player) {
+        return taggedPlayers.contains(player.getUniqueId());
+    }
+
+    public void setTagged(Player player, boolean tagged) {
+        if (tagged && !isTagged(player)) {
+            taggedPlayers.add(player.getUniqueId());
+        } else if (!tagged & isTagged(player)) {
+            taggedPlayers.remove(player.getUniqueId());
+        }
+    }
+
     public boolean isSeeker(Player player) {
         Team seekers = this.scoreboard.getTeam("seekers");
         if (seekers == null) {
@@ -205,9 +241,45 @@ public class Game implements Listener {
         return false;
     }
 
+    public Set<Team> getTeams() {
+        return this.scoreboard.getTeams();
+    }
+
+    public Team getTeam(String teamName) {
+        return this.scoreboard.getTeam(teamName);
+    }
+
+    public Team getTeam(OfflinePlayer player) {
+        return this.scoreboard.getPlayerTeam(player);
+    }
+
+    public void addTeam(String teamName, NamedTextColor color, Component prefix) {
+        if (this.scoreboard.getTeam(teamName) != null) {
+            // TODO: Send error
+            return;
+        }
+
+        Team team = this.scoreboard.registerNewTeam(teamName);
+        team.color(color);
+        team.prefix(prefix);
+    }
+
+    public void removeTeam(String teamName) {
+        Team team = this.scoreboard.getTeam(teamName);
+        if (team != null) {
+            team.unregister();
+        } else {
+            // TODO: Send error
+        }
+    }
+
+    public List<Player> getPlayers() {
+        return this.world.getPlayers();
+    }
+
     @EventHandler
     public void onTick(ServerTickStartEvent event) {
-        tick();
+        this.tick();
     }
 
     @EventHandler
@@ -221,6 +293,9 @@ public class Game implements Listener {
         if (targetEntity instanceof Player target && attackerEntity instanceof Player attacker) {
             if (this.isSeeker(attacker) && this.isHider(target)) {
                 // If a seeker attacks a hider
+
+                this.setTagged(target, true);
+
                 SeekerTagHiderEvent eventToCall = new SeekerTagHiderEvent(this, attacker, target);
                 if (!eventToCall.isCancelled()) {
                     Bukkit.getPluginManager().callEvent(eventToCall);

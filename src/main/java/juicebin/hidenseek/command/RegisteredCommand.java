@@ -37,12 +37,12 @@ public abstract class RegisteredCommand implements TabExecutor {
 
     protected abstract String getName();
 
-    protected abstract void run(CommandSender sender, Command command, String label, String[] args);
+    protected abstract boolean run(CommandSender sender, Command command, String label, String[] args);
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!this.checkSubcommands(sender, command, command.getName(), args)) {
-            this.run(sender, command, label, args);
+            return this.run(sender, command, label, args);
         }
 
         return true;

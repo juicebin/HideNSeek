@@ -11,7 +11,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -25,6 +24,7 @@ import java.util.logging.Level;
 
 public final class HideNSeek extends JavaPlugin {
     public static HideNSeek INSTANCE;
+    private static final String LOG_PREFIX = "[HideNSeek] ";
     private Config configInstance;
     private FileConfiguration teamConfig;
     private Commodore commodore;
@@ -87,10 +87,14 @@ public final class HideNSeek extends JavaPlugin {
         return this.configInstance;
     }
 
-    public static void debug(String msg) {
-        if (INSTANCE.getConfigInstance().isDebugMode()) {
-            Bukkit.getLogger().log(Level.CONFIG, msg);
+    public static void debug(HideNSeek plugin, String msg) {
+        if (plugin.getConfigInstance().isDebugMode()) {
+            log(Level.CONFIG, msg);
         }
+    }
+
+    public static void log(Level level, String msg) {
+        Bukkit.getLogger().log(level, LOG_PREFIX + msg);
     }
 
     public GameHandler getGameHandler() {
@@ -98,13 +102,13 @@ public final class HideNSeek extends JavaPlugin {
     }
 
     public static TextComponent getPrefix() {
-        return Component.text().style(Style.style(TextDecoration.BOLD))
+        return Component.text()
+                .style(Style.style(TextDecoration.BOLD))
                 .append(Component.text("[").color(NamedTextColor.DARK_GRAY))
                 .append(Component.text("H").color(NamedTextColor.BLUE))
-                .append(Component.text("&").color(NamedTextColor.WHITE))
+                .append(Component.text("&").color(NamedTextColor.GRAY))
                 .append(Component.text("S").color(NamedTextColor.YELLOW))
                 .append(Component.text("]").color(NamedTextColor.DARK_GRAY))
-                .style(Style.empty())
-                .build();
+                .build().append(Component.text().style(Style.empty()));
     }
 }

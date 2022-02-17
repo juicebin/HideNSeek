@@ -1,12 +1,21 @@
 seekers:
-  - juicebin
-  - OriLovesTea
-  - DotWavJordan
-  - EnderGamingYT
+  display-name: Seekers
+  color: RED
+  players:
+    - juicebin
+    - OriLovesTea
+    - DotWavJordan
+    - EnderGamingYT
 hiders:
   team-1:
-    - RobboFunny
-    - AdrianahLee
+    display-name: Team 1
+    color: AQUA
+    players:
+      - RobboFunny
+      - AdrianahLee
   team-2:
-    - Fluctra
-    - roseriie
+    display-name: Team 2
+    color: GREEN
+    players:
+      - Fluctra
+      - roseriie
