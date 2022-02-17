@@ -18,6 +18,15 @@ public class GameListener extends RegisteredListener {
         this.plugin = instance;
     }
 
+    // TODO: Game Process
+    //  - [ ] release seekers after x amount of time
+    //  - [ ] send info message in chat
+    //  - [ ] start the action bar timer
+    //  - [ ] make players that are on the team in adventure mode
+    //  - [ ] shrinking border after x amount of time
+    //  - [ ] start glowing intervals
+    //  - [ ] give seekers a trail
+
     @EventHandler
     public void onGameStartEvent(GameStartEvent event) {
         log(Level.INFO, "Event called: GameStartEvent");
