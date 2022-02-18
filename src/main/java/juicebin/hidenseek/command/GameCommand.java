@@ -145,20 +145,21 @@ public class GameCommand extends RegisteredCommand {
 
                                         String msg = "";
 
-                                        if (args[5].equalsIgnoreCase("add-player")) {
-                                            team.addPlayer(targetPlayer);
-                                            msg = String.format("Player '%s' successfully added to team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
-                                        }
-                                        if (args[5].equalsIgnoreCase("remove-player")) {
-                                            team.removePlayer(targetPlayer);
-                                            msg = String.format("Player '%s' successfully removed from team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
+                                        switch (args[5].toLowerCase(Locale.ROOT)) {
+                                            case "add-player" -> {
+                                                team.addPlayer(targetPlayer);
+                                                msg = String.format("Player '%s' successfully added to team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
+                                            }
+                                            case "remove-player" -> {
+                                                team.removePlayer(targetPlayer);
+                                                msg = String.format("Player '%s' successfully removed from team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
+                                            }
                                         }
 
                                         MessageUtils.sendMessage(player, MessageLevel.SUCCESS, msg);
+                                        MessageUtils.sendMessage(player, MessageLevel.ERROR, "WARNING: This is an instance-based outcome. The teams will reset when the server or plugin is reloaded.");
                                     }
-                                    case "info" -> {
-                                        MessageUtils.sendMessage(player, this.getTeamInfo(game, team));
-                                    }
+                                    case "info" -> MessageUtils.sendMessage(player, this.getTeamInfo(game, team));
                                 }
                             }
                             case "list" -> {
@@ -213,6 +214,27 @@ public class GameCommand extends RegisteredCommand {
             }
             case "list" -> {
                 return List.of();
+            }
+            case "manage" -> {
+                if (args.length == 2) {
+                    return List.of("teams", "display-player");
+                } else if (args.length == 3) {
+                    if (args[1].equalsIgnoreCase("teams")) {
+                        // /game manage teams
+                        return List.of("manage");
+                    } else {
+                        return List.of();
+                    }
+                } else if (args.length == 4) {
+                    if (args[1].equalsIgnoreCase("teams") && args[2].equalsIgnoreCase("manage")) {
+                        // /game manage teams manage
+                        return List.of("add-player", "remove-player", "info");
+                    } else {
+                        return List.of();
+                    }
+                } else {
+                    return List.of();
+                }
             }
             default -> {
                 if (args.length == 1)  {

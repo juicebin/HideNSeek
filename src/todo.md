@@ -2,12 +2,8 @@
 - point system??? prob just wins/losses
 
 # Today
-- [ ] Finish the game command
-- [ ] Ensure that teams work
 - [ ] Get scoreboard working
 - [ ] Make team management commands (adding and removing players from a team)
-- [x] Make team listing commands
-- [x] Make sure the game runs (ticking function)
 
 # Next Day
 - [ ] Organize GameCommand components (e.g. getTeamInfo similar to getPlayerInfo)
