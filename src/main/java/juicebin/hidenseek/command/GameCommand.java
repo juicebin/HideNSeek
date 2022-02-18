@@ -36,8 +36,6 @@ public class GameCommand extends RegisteredCommand {
         return "game";
     }
 
-    // TODO: pls make this not look like shit you dumb fucking gross ass pig :)
-
     @Override
     protected boolean run(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -79,28 +77,10 @@ public class GameCommand extends RegisteredCommand {
             case "list" -> {
                 if (args.length != 1) return false;
 
-                TextComponent.Builder builder = Component.text();
+                List<Game> gameList = gameHandler.getGames();
 
-                builder.append(this.createPrefixedComponent(Component.text("List of Registered Games:").color(NamedTextColor.WHITE)));
-
-                for (int i = 0; i < gameHandler.getGames().size(); i++) {
-                    Game game = gameHandler.getGames().get(i);
-
-                    builder
-                            .append(Component.newline())
-                            .append(this.createPrefixedComponent(
-                                    Component.text(game.getId())
-                                            .color(NamedTextColor.YELLOW)
-                                            .hoverEvent(HoverEvent.showText(Component.text("Click to view info").color(NamedTextColor.AQUA)))
-                                            .clickEvent(ClickEvent.runCommand("/game view " + game.getId()))
-                                            .append(Component.text(" - ").color(NamedTextColor.WHITE))
-                                            .append(Component.text(game.isActive() ? "ACTIVE" : "INACTIVE").color(game.isActive() ? NamedTextColor.GREEN : NamedTextColor.RED))));
-                }
-
-                builder.append(Component.newline());
-
-                if (gameHandler.getGames().size() > 0) {
-                    MessageUtils.sendMessage(player, builder.build());
+                if (gameList.size() > 0) {
+                    MessageUtils.sendMessage(player, this.getGameListInfo(gameList));
                 } else {
                     MessageUtils.sendMessage(player, MessageLevel.ERROR, "There are no registered games.");
                 }
@@ -177,42 +157,17 @@ public class GameCommand extends RegisteredCommand {
                                         MessageUtils.sendMessage(player, MessageLevel.SUCCESS, msg);
                                     }
                                     case "info" -> {
-                                        TextComponent.Builder builder = Component.text()
-                                                .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
-                                                        .append(team.displayName())
-                                                        .append(Component.text(" in game ").color(NamedTextColor.WHITE))
-                                                        .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
-                                                        .append(Component.text(":").color(NamedTextColor.WHITE))))
-                                                .append(Component.newline());
-
-                                        for (Player targetPlayer : game.getPlayers()) {
-                                            String playerName = targetPlayer.getName();
-                                            builder.append(this.createBulletedComponent(this.createPlayerInfoComponent(playerName, NamedTextColor.WHITE, game)))
-                                                    .append(Component.newline());
-                                        }
-
-                                        MessageUtils.sendMessage(player, builder.build());
+                                        MessageUtils.sendMessage(player, this.getTeamInfo(game, team));
                                     }
                                 }
                             }
                             case "list" -> {
-                                TextComponent.Builder builder = Component.text()
-                                        .append(this.createPrefixedComponent(Component.text("List of teams from game ").color(NamedTextColor.WHITE)
-                                                .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
-                                                .append(Component.text(":").color(NamedTextColor.WHITE))))
-                                        .append(Component.newline());
-
-                                for (Team team : game.getTeams()) {
-                                    builder.append(this.createBulletedComponent(this.createTeamInfoComponent(team, game)))
-                                            .append(Component.newline());
-                                }
-
                                 if (game.getTeams().size() <= 0) {
                                     MessageUtils.sendMessage(player, MessageLevel.ERROR, "There are no players on this team.");
                                     return true;
                                 }
 
-                                MessageUtils.sendMessage(player, builder.build());
+                                MessageUtils.sendMessage(player, this.getTeamListInfo(game));
                             }
                         }
                     }
@@ -317,6 +272,61 @@ public class GameCommand extends RegisteredCommand {
                 .append(this.createBulletedComponent(this.createGameControlComponent(game)))
                 .append(Component.newline())
                 .build();
+    }
+
+    @NotNull
+    private TextComponent getTeamInfo(Game game, Team team) {
+        TextComponent.Builder builder = Component.text()
+                .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
+                        .append(team.displayName())
+                        .append(Component.text(" in game ").color(NamedTextColor.WHITE))
+                        .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
+                        .append(Component.text(":").color(NamedTextColor.WHITE))))
+                .append(Component.newline());
+
+        for (Player targetPlayer : game.getPlayers()) {
+            String playerName = targetPlayer.getName();
+            builder.append(this.createBulletedComponent(this.createPlayerInfoComponent(playerName, NamedTextColor.WHITE, game)))
+                    .append(Component.newline());
+        }
+
+        return builder.build();
+    }
+
+    private TextComponent getGameListInfo(List<Game> gameList) {
+        TextComponent.Builder builder = Component.text();
+
+        builder.append(this.createPrefixedComponent(Component.text("List of Registered Games:").color(NamedTextColor.WHITE)));
+
+        for (Game game : gameList) {
+            builder
+                    .append(Component.newline())
+                    .append(this.createPrefixedComponent(
+                            Component.text(game.getId())
+                                    .color(NamedTextColor.YELLOW)
+                                    .hoverEvent(HoverEvent.showText(Component.text("Click to view info").color(NamedTextColor.AQUA)))
+                                    .clickEvent(ClickEvent.runCommand("/game view " + game.getId()))
+                                    .append(Component.text(" - ").color(NamedTextColor.WHITE))
+                                    .append(Component.text(game.isActive() ? "ACTIVE" : "INACTIVE").color(game.isActive() ? NamedTextColor.GREEN : NamedTextColor.RED))));
+        }
+
+        builder.append(Component.newline());
+        return builder.build();
+    }
+
+    private TextComponent getTeamListInfo(Game game) {
+        TextComponent.Builder builder = Component.text()
+                .append(this.createPrefixedComponent(Component.text("List of teams from game ").color(NamedTextColor.WHITE)
+                        .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
+                        .append(Component.text(":").color(NamedTextColor.WHITE))))
+                .append(Component.newline());
+
+        for (Team team : game.getTeams()) {
+            builder.append(this.createBulletedComponent(this.createTeamInfoComponent(team, game)))
+                    .append(Component.newline());
+        }
+
+        return builder.build();
     }
 
     private TextComponent getPlayerInfo(Game game, Player player) {
