@@ -3,6 +3,9 @@
 
 # Today
 - [ ] Get scoreboard working
+  - Time
+  - Team Name
+  - @DotWavPresents
 - [ ] Make team management commands (adding and removing players from a team)
 
 # Next Day

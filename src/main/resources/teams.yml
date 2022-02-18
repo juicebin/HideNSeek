@@ -1,6 +1,6 @@
 seekers:
   display-name: Seekers
-  color: RED
+  color: red
   players:
     - juicebin
     - OriLovesTea
@@ -9,13 +9,13 @@ seekers:
 hiders:
   team-1:
     display-name: Team 1
-    color: AQUA
+    color: aqua
     players:
       - RobboFunny
       - AdrianahLee
   team-2:
     display-name: Team 2
-    color: GREEN
+    color: green
     players:
       - Fluctra
       - roseriie

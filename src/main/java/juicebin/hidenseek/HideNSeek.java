@@ -87,8 +87,8 @@ public final class HideNSeek extends JavaPlugin {
         return this.configInstance;
     }
 
-    public static void debug(HideNSeek plugin, String msg) {
-        if (plugin.getConfigInstance().isDebugMode()) {
+    public void debug(String msg) {
+        if (this.getConfigInstance().isDebugMode()) {
             log(Level.CONFIG, msg);
         }
     }

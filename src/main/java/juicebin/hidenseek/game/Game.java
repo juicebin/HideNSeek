@@ -101,7 +101,9 @@ public class Game implements Listener {
         // Show scoreboard
         for (Player player : this.getPlayers()) {
             ScoreHelper scoreHelper = ScoreHelper.createScore(player);
+            Team team = this.getTeam(player);
             scoreHelper.setTitle(title);
+            scoreHelper.setSlot(2, "&fTeam: " + team.getName()); // TODO: team color
         }
 
         log(Level.INFO, "Starting registered game \"" + id + "\"...");
