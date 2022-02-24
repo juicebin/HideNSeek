@@ -9,12 +9,12 @@
 - [ ] Make team management commands (adding and removing players from a team)
 
 # Next Day
-- [ ] Organize GameCommand components (e.g. getTeamInfo similar to getPlayerInfo)
+- [x] Organize GameCommand components (e.g. getTeamInfo similar to getPlayerInfo)
 - [ ] Fix team colors
 - [ ] Fix chat prefix
 - [ ] `/games` command (alias for `/games list`)
 - [ ] Debug log functionality (?)
-- [ ] Begin GameListener functionality
+- [x] Begin GameListener functionality
   - [ ] GameStartEvent functionality
   - [ ] GameStopEvent
 

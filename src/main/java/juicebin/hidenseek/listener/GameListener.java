@@ -3,10 +3,8 @@ package juicebin.hidenseek.listener;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import juicebin.hidenseek.game.Game;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import juicebin.hidenseek.util.MessageUtils;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.scoreboard.Team;
 
@@ -43,8 +41,6 @@ public class GameListener extends RegisteredListener {
 
         // Send game start message
 
-        // Set initial border size
-
         // TP hiders to hider spawn
         game.teleportHiders(game.getHiderSpawn());
     }
@@ -57,6 +53,8 @@ public class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
         World world = game.getWorld();
+
+        // Send message
 
         // TP all players to lobby
         game.teleportSeekers(game.getLobbyLocation());
@@ -87,7 +85,12 @@ public class GameListener extends RegisteredListener {
         log(Level.INFO, "Event called: BorderShrinkEvent");
 
         Game game = event.getGame();
-        World world = game.getWorld();
+
+        if (event.isFirstEvent()) {
+            MessageUtils.sendWarningTitle("THE BORDER IS STARTING TO SHRINK");
+        }
+
+        game.setWorldBorderSize(plugin.getConfigInstance().getBorderShrinkSize());
     }
 
     @EventHandler

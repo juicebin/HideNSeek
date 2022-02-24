@@ -4,8 +4,11 @@ import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
+import juicebin.hidenseek.util.MessageUtils;
 import juicebin.hidenseek.util.ScoreHelper;
+import juicebin.hidenseek.util.SoundUtils;
 import juicebin.hidenseek.util.TickUtils;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -19,6 +22,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
 import java.util.ArrayList;
@@ -88,9 +92,8 @@ public class Game implements Listener {
     public void start() {
         ticks = config.getMatchTime();
         active = true;
-        seekersReleased = false;
-        borderStartedShrink = false;
-        hidersStartGlow = false;
+
+        this.initWorldBorder();
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
@@ -116,6 +119,8 @@ public class Game implements Listener {
         borderStartedShrink = false;
         hidersStartGlow = false;
 
+        this.resetWorldBorder();
+
         // Hide scoreboard
         for (Player player : this.getPlayers()) {
             ScoreHelper.removeScore(player);
@@ -140,6 +145,12 @@ public class Game implements Listener {
             SeekersReleasedEvent event = new SeekersReleasedEvent(this);
             if (!event.isCancelled()) {
                 Bukkit.getPluginManager().callEvent(event);
+            }
+        }
+
+        for (int time : config.getBorderWarningTimes()) {
+            if (ticks == this.config.getBorderShrinkStartTime() + time) {
+                this.sendWarningAlert("Border starting to shrink in", time);
             }
         }
 
@@ -175,9 +186,36 @@ public class Game implements Listener {
             }
         }
 
+        for (int time : config.getMatchWarningTimes()) {
+            if (ticks == time) {
+                this.sendWarningAlert("Game is ending in", time);
+            }
+        }
+
         if (ticks <= 0) {
             this.stop();
         }
+    }
+
+    private void sendWarningAlert(String text, int timeLeft) {
+        int seconds = timeLeft / 20;
+        int minutes = seconds / 60;
+
+        String time;
+
+        if (minutes > 1) {
+            time = minutes + " minutes";
+        } else {
+            time = seconds + " seconds";
+        }
+
+        MessageUtils.broadcast(Component.text()
+                .append(Component.text(text).color(NamedTextColor.RED))
+                .append(Component.space())
+                .append(Component.text(time).color(NamedTextColor.YELLOW))
+                .build());
+
+        SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.BLOCK_DISPENSER_DISPENSE, Sound.Source.MASTER, 0.5f, 1.0f));
     }
 
     public boolean isActive() {
@@ -314,8 +352,20 @@ public class Game implements Listener {
         border.setSize(this.config.getBorderInitialSize());
     }
 
+    public void resetWorldBorder() {
+        this.world.getWorldBorder().reset();
+    }
+
     public void setWorldBorderSize(double size) {
+        if (this.world.getWorldBorder().getSize() <= 1) {
+            return; // TODO: maybe console msg or something saying why it isnt gonan shrink anymore
+        }
+
         this.world.getWorldBorder().setSize(size);
+    }
+
+    public void decreaseWorldBorderSize(double size) {
+        this.setWorldBorderSize(this.world.getWorldBorder().getSize() - size);
     }
 
     @EventHandler

@@ -22,6 +22,8 @@ public final class Config {
     private final double borderCenterX;
     private final double borderCenterZ;
     private final double borderInitialSize;
+    private final List<Integer> borderWarningTimes;
+    private final List<Integer> matchWarningTimes;
     private final boolean isDebugMode;
 
     public Config(HideNSeek instance) {
@@ -51,9 +53,11 @@ public final class Config {
         this.borderShrinkStartTime = config.getInt("border.start_shrink_time");
         this.borderShrinkInterval = config.getInt("border.shrink_interval");
         this.borderShrinkSize = config.getDouble("border.shrink_size");
-        this.borderCenterX = config.getInt("border.center.x");
-        this.borderCenterZ = config.getInt("border.center.z");
-        this.borderInitialSize = config.getInt("border.initial_size");
+        this.borderCenterX = config.getDouble("border.center.x");
+        this.borderCenterZ = config.getDouble("border.center.z");
+        this.borderInitialSize = config.getDouble("border.initial_size");
+        this.borderWarningTimes = config.getIntegerList("border.warning_times");
+        this.matchWarningTimes = config.getIntegerList("match_stop_warning_times");
     }
 
     public List<String> getHiderTeam(String id) {
@@ -110,5 +114,13 @@ public final class Config {
 
     public double getBorderInitialSize() {
         return borderInitialSize;
+    }
+
+    public List<Integer> getBorderWarningTimes() {
+        return borderWarningTimes;
+    }
+
+    public List<Integer> getMatchWarningTimes() {
+        return matchWarningTimes;
     }
 }

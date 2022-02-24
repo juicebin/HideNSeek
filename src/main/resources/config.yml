@@ -6,6 +6,24 @@ hide_time: 4200
 # Default: 24000 (20:00)
 match_time: 24000
 
+# The times before the start_shrink_time when a warning will be sent for the match stops
+match_stop_warning_times:
+  - 12000 # This is 10 mins, so thus a warning is sent 10 mins *before* the match ends
+  - 6000 # 5 mins
+  - 2400 # 2 mins
+  - 1200 # 1 mins
+  - 600 # 30 seconds
+  - 200 # 10 seconds
+  - 180
+  - 160
+  - 140
+  - 120
+  - 100
+  - 80
+  - 60
+  - 40
+  - 20
+
 # How much time it takes for the players to start glowing (in ticks)
 # Default: 0 (starts the interval immediately)
 glow_start: 0
@@ -31,6 +49,18 @@ border:
   center:
     x: 0.0 # Default: 0.0
     z: 0.0 # Default: 0.0
+
+  # The times before the start_shrink_time when a warning will be sent for the shrinking of the border
+  warning_times:
+    - 200 # This is 10 seconds, so thus a warning is sent 10 seconds *before* the border starts to shrink
+    - 180
+    - 160
+    - 140
+    - 120
+    - 100
+    - 80
+    - 40
+    - 20
 
   # How much time it takes for the border to start shrinking (in ticks)
   # Default: 12000 (10:00)
