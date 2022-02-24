@@ -19,6 +19,9 @@ public final class Config {
     private final Location lobbyLocation;
     private final List<String> seekerNames;
     private final List<String> hiderNamesAll;
+    private final double borderCenterX;
+    private final double borderCenterZ;
+    private final double borderInitialSize;
     private final boolean isDebugMode;
 
     public Config(HideNSeek instance) {
@@ -29,25 +32,28 @@ public final class Config {
 
         this.hideTime = config.getInt("hide_time");
         this.matchTime = config.getInt("match_time");
-        this.borderShrinkStartTime = config.getInt("border_start_shrink");
-        this.borderShrinkInterval = config.getInt("border_shrink_interval");
-        this.borderShrinkSize = config.getDouble("border_shrink_size");
         this.glowStartTime = config.getInt("glow_start");
         this.glowInterval = config.getInt("glow_interval");
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
-        this.isDebugMode = config.isBoolean("debug");
         this.lobbyLocation = new Location(
                 instance.getServer().getWorld(config.getString("lobby.world")),
                 config.getDouble("lobby.x"),
                 config.getDouble("lobby.y"),
                 config.getDouble("lobby.z")
         );
-
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
             hiderNamesAll.addAll(hiders.getStringList(key));
         }
+        this.isDebugMode = config.isBoolean("debug");
+
+        this.borderShrinkStartTime = config.getInt("border.start_shrink_time");
+        this.borderShrinkInterval = config.getInt("border.shrink_interval");
+        this.borderShrinkSize = config.getDouble("border.shrink_size");
+        this.borderCenterX = config.getInt("border.center.x");
+        this.borderCenterZ = config.getInt("border.center.z");
+        this.borderInitialSize = config.getInt("border.initial_size");
     }
 
     public List<String> getHiderTeam(String id) {
@@ -92,5 +98,17 @@ public final class Config {
 
     public boolean isDebugMode() {
         return isDebugMode;
+    }
+
+    public double getBorderCenterX() {
+        return borderCenterX;
+    }
+
+    public double getBorderCenterZ() {
+        return borderCenterZ;
+    }
+
+    public double getBorderInitialSize() {
+        return borderInitialSize;
     }
 }

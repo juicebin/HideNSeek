@@ -10,10 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -247,6 +244,14 @@ public class Game implements Listener {
         return this.scoreboard.getTeams();
     }
 
+    public Team getSeekingTeam() {
+        return this.getTeam("seekers");
+    }
+
+    public Set<Team> getHidingTeams() {
+        return this.getTeams().stream().filter(t -> t.getName().startsWith("hider-")).collect(Collectors.toSet());
+    }
+
     public Team getTeam(String teamName) {
         return this.scoreboard.getTeam(teamName);
     }
@@ -277,6 +282,40 @@ public class Game implements Listener {
 
     public List<Player> getPlayers() {
         return this.world.getPlayers();
+    }
+
+    public void teleportHiders(Location location) {
+        for (Team team : this.getHidingTeams()) {
+            for (String entry : team.getEntries()) {
+                Player player = Bukkit.getPlayer(entry);
+                if (player == null) {
+                    log(Level.WARNING, "Tried to teleport non-player entry from the HIDERS team. Skipping...");
+                    continue;
+                }
+                player.teleport(location);
+            }
+        }
+    }
+
+    public void teleportSeekers(Location location) {
+        for (String entry : this.getSeekingTeam().getEntries()) {
+            Player player = Bukkit.getPlayer(entry);
+            if (player == null) {
+                log(Level.WARNING, "Tried to teleport non-player entry from the SEEKERS team. Skipping...");
+                continue;
+            }
+            player.teleport(location);
+        }
+    }
+
+    public void initWorldBorder() {
+        WorldBorder border = this.world.getWorldBorder();
+        border.setCenter(this.config.getBorderCenterX(), this.config.getBorderCenterZ());
+        border.setSize(this.config.getBorderInitialSize());
+    }
+
+    public void setWorldBorderSize(double size) {
+        this.world.getWorldBorder().setSize(size);
     }
 
     @EventHandler

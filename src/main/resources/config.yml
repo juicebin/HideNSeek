@@ -6,20 +6,9 @@ hide_time: 4200
 # Default: 24000 (20:00)
 match_time: 24000
 
-# How much time it takes for the border to start shrinking (in ticks)
-# Default: 12000 (10:00)
-border_start_shrink: 12000
-
-# The amount of time in-between each border shrinking (in ticks)
-border_shrink_interval:
-
-# The amount of blocks the border shrinks by
-# Default: 1
-border_shrink_size: 1
-
 # How much time it takes for the players to start glowing (in ticks)
-# Default: 24000 (starts immediately)
-glow_start: 24000
+# Default: 0 (starts the interval immediately)
+glow_start: 0
 
 # The amount of time in-between each time the hiders glow (in ticks)
 # Default: 3600 (3:00)
@@ -31,6 +20,29 @@ lobby:
   x: 0.0 # Default: 0.0
   y: 0.0 # Default: 0.0
   z: 0.0 # Default: 0.0
+
+# Game world border details
+border:
+  # The initial size of the border, before any shrinking (in blocks) (0 for no border)
+  # Default: 250
+  initial_size: 250
+
+  # The x and z coordinates of the center of the border
+  center:
+    x: 0.0 # Default: 0.0
+    z: 0.0 # Default: 0.0
+
+  # How much time it takes for the border to start shrinking (in ticks)
+  # Default: 12000 (10:00)
+  start_shrink_time: 12000
+
+  # The amount of time in-between each border shrinking (in ticks)
+  # Default: 1200 (01:00)
+  shrink_interval: 1200
+
+  # The amount of blocks the border shrinks by (in blocks)
+  # Default: 10.0
+  shrink_size: 10.0
 
 # Debug mode
 debug: true
