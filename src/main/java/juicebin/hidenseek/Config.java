@@ -26,6 +26,7 @@ public final class Config {
     private final double borderCenterX;
     private final double borderCenterZ;
     private final double borderInitialSize;
+    private final long borderShrinkTime;
     private final List<Integer> borderWarningTimes;
     private final List<Integer> matchWarningTimes;
     private final boolean isDebugMode;
@@ -74,6 +75,7 @@ public final class Config {
         this.borderCenterZ = config.getDouble("border.center.z");
         this.borderInitialSize = config.getDouble("border.initial_size");
         this.borderWarningTimes = config.getIntegerList("border.warning_times");
+        this.borderShrinkTime = config.getLong("border.shrink_time");
         this.matchWarningTimes = config.getIntegerList("match_stop_warning_times");
     }
 
@@ -147,5 +149,9 @@ public final class Config {
 
     public World getGameWorld() {
         return gameWorld;
+    }
+
+    public long getBorderShrinkTime() {
+        return borderShrinkTime;
     }
 }

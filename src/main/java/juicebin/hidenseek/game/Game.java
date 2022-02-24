@@ -124,7 +124,7 @@ public final class Game implements Listener {
 
         if (!this.active) return;
 
-        for (Player player : this.getPlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
             scoreHelper.setSlot(1, "&cTime Left: &r" + TickUtils.convertTicksToTime(ticks));
         }
@@ -304,10 +304,6 @@ public final class Game implements Listener {
         }
     }
 
-    public List<Player> getPlayers() {
-        return this.world.getPlayers();
-    }
-
     public void teleportHiders(Location location) {
         for (Team team : this.getHidingTeams()) {
             for (String entry : team.getEntries()) {
@@ -342,16 +338,16 @@ public final class Game implements Listener {
         this.world.getWorldBorder().reset();
     }
 
-    public void setWorldBorderSize(double size) {
+    public void setWorldBorderSize(double size, long seconds) {
         if (this.world.getWorldBorder().getSize() <= 1) {
             return; // TODO: maybe console msg or something saying why it isnt gonan shrink anymore
         }
 
-        this.world.getWorldBorder().setSize(size);
+        this.world.getWorldBorder().setSize(size, seconds);
     }
 
-    public void decreaseWorldBorderSize(double size) {
-        this.setWorldBorderSize(this.world.getWorldBorder().getSize() - size);
+    public void decreaseWorldBorderSize(double size, long seconds) {
+        this.setWorldBorderSize(this.world.getWorldBorder().getSize() - size, seconds);
     }
 
     @EventHandler

@@ -16,6 +16,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -242,13 +243,14 @@ public class GameCommand extends RegisteredCommand {
 
     @NotNull
     private TextComponent getTeamInfo(Game game, Team team) {
+        // TODO: Fix this up, since players are fucked up idk just look at it
         TextComponent.Builder builder = Component.text()
                 .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
                         .append(team.displayName())
                         .append(Component.text(":").color(NamedTextColor.WHITE))))
                 .append(Component.newline());
 
-        for (Player targetPlayer : game.getPlayers()) {
+        for (OfflinePlayer targetPlayer : team.getPlayers()) {
             String playerName = targetPlayer.getName();
             builder.append(this.createBulletedComponent(this.createPlayerInfoComponent(playerName, NamedTextColor.WHITE, game)))
                     .append(Component.newline());

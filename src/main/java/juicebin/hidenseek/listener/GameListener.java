@@ -1,10 +1,14 @@
 package juicebin.hidenseek.listener;
 
+import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.util.MessageUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.scoreboard.Team;
 
@@ -58,6 +62,11 @@ public class GameListener extends RegisteredListener {
         game.teleportSeekers(game.getLobbyLocation());
         game.teleportHiders(game.getLobbyLocation());
 
+        // Give all players gamemode survival
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.setGameMode(GameMode.SURVIVAL);
+        }
+
         // Send message who wins
         // Change scoreboard to show who wins
     }
@@ -91,7 +100,9 @@ public class GameListener extends RegisteredListener {
             MessageUtils.sendWarningTitle("THE BORDER IS STARTING TO SHRINK");
         }
 
-        game.setWorldBorderSize(plugin.getConfigInstance().getBorderShrinkSize());
+        // Decrease the world border size from A to B over X amount of time
+        Config config = plugin.getConfigInstance();
+        game.setWorldBorderSize(config.getBorderShrinkSize(), config.getBorderShrinkTime());
     }
 
     @EventHandler
@@ -100,8 +111,14 @@ public class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
 
+        // Send tag message
+
         // Turn into spectator mode
-        // Give ability to see all hiders client-side
+        event.getHider().setGameMode(GameMode.SPECTATOR);
+
+        // Give ability to see all hiders and seekers client-side
+
+        // Lower player left count
     }
 
 }

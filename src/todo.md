@@ -10,20 +10,19 @@
   - @DotWavPresents
 - [ ] Make team management commands (adding and removing players from a team)
 
-# Next Day
+# TODO
 - [x] Organize GameCommand components (e.g. getTeamInfo similar to getPlayerInfo)
+- [ ] Game player count and team count
 - [ ] Fix team colors
 - [ ] Fix chat prefix
 - [ ] `/games` command (alias for `/games list`)
-- [ ] Debug log functionality (?)
-- [x] Begin GameListener functionality
-  - [ ] GameStartEvent functionality
-  - [ ] GameStopEvent
+- [ ] GameListener functionality
 
-# TODO
-- [ ] 
 
 # Future
+- [ ] Add lang functionality w/ placeholders for ALL string messages
+- [ ] Debug log functionality
+- [ ] Make games world-based and allow for multiple at a time
 - [ ] Make scoreboard entirely configurable
 - [ ] Make the command system (original system you were working on that you gave up for times' sake)
 - [ ] Make the games world-dependent instead of server-wide

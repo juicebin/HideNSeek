@@ -94,5 +94,9 @@ border:
   # Default: 10.0
   shrink_size: 10.0
 
+  # The amount of time it takes each shrinking to actually shrink (to go from point A to point B) (in seconds)
+  # Default: 5
+  shrink_time: 5
+
 # Debug mode
 debug: true
