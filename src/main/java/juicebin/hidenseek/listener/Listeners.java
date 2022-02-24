@@ -1,5 +1,6 @@
 package juicebin.hidenseek.listener;
 
+import juicebin.hidenseek.HideNSeek;
 import org.bukkit.plugin.Plugin;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public final class Listeners {
         this.listenerList = List.of(listeners);
     }
 
-    public void register(Plugin instance) {
+    public void register(HideNSeek instance) {
         for (RegisteredListener listener : listenerList) {
             listener.register(instance);
         }

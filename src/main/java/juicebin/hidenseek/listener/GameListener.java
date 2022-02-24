@@ -49,8 +49,6 @@ public class GameListener extends RegisteredListener {
     public void onGameStopEvent(GameStopEvent event) {
         log(Level.INFO, "Event called: GameStopEvent");
 
-        // TODO: Send to lobby and do other game end stuff like saving scores and whatnot
-
         Game game = event.getGame();
         World world = game.getWorld();
 
@@ -59,6 +57,9 @@ public class GameListener extends RegisteredListener {
         // TP all players to lobby
         game.teleportSeekers(game.getLobbyLocation());
         game.teleportHiders(game.getLobbyLocation());
+
+        // Send message who wins
+        // Change scoreboard to show who wins
     }
 
     @EventHandler
@@ -98,6 +99,9 @@ public class GameListener extends RegisteredListener {
         log(Level.INFO, "Event called: SeekerTagHiderEvent");
 
         Game game = event.getGame();
+
+        // Turn into spectator mode
+        // Give ability to see all hiders client-side
     }
 
 }

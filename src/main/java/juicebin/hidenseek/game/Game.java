@@ -34,16 +34,10 @@ import java.util.stream.Collectors;
 
 import static juicebin.hidenseek.HideNSeek.log;
 
-public class Game implements Listener {
-    private static final TextComponent title = Component.text()
-            .append(Component.text("Ikea").color(TextColor.color(235, 192, 0)))
-            .append(Component.space())
-            .append(Component.text("Hide N Seek").color(TextColor.color(25, 44, 255)))
-            .build();
+public final class Game implements Listener {
     private final List<UUID> taggedPlayers = new ArrayList<>();
     private final HideNSeek plugin;
     private final World world;
-    private final String id;
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
@@ -56,9 +50,8 @@ public class Game implements Listener {
     private boolean hidersStartGlow;
     private int ticks;
 
-    public Game(HideNSeek instance, String id, World world, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
+    public Game(HideNSeek instance, World world, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
         this.plugin = instance;
-        this.id = id;
         this.world = world;
         this.lobbyLocation = lobbyLocation;
         this.hiderSpawn = hiderSpawn;
@@ -98,15 +91,12 @@ public class Game implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
 
-        // Show scoreboard
-        for (Player player : this.getPlayers()) {
-            ScoreHelper scoreHelper = ScoreHelper.createScore(player);
-            Team team = this.getTeam(player);
-            scoreHelper.setTitle(title);
-            scoreHelper.setSlot(2, "&fTeam: " + team.getName()); // TODO: team color
+        // Hide nameplates for other teams
+        for (Team team : this.getTeams()) {
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         }
 
-        log(Level.INFO, "Starting registered game \"" + id + "\"...");
+        log(Level.INFO, "Starting registered game...");
     }
 
     public void stop() {
@@ -121,12 +111,12 @@ public class Game implements Listener {
 
         this.resetWorldBorder();
 
-        // Hide scoreboard
-        for (Player player : this.getPlayers()) {
-            ScoreHelper.removeScore(player);
+        // Show nameplates
+        for (Team team : this.getTeams()) {
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         }
 
-        log(Level.INFO, "Stopping registered game \"" + id + "\"...");
+        log(Level.INFO, "Stopping registered game...");
     }
 
     public void tick() {
@@ -232,10 +222,6 @@ public class Game implements Listener {
 
     public Location getSeekerSpawn() {
         return seekerSpawn;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public World getWorld() {

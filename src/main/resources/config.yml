@@ -24,20 +24,40 @@ match_stop_warning_times:
   - 40
   - 20
 
-# How much time it takes for the players to start glowing (in ticks)
-# Default: 0 (starts the interval immediately)
-glow_start: 0
+# Glow functionality details
+glow:
+  # How much time it takes for the players to start glowing (in ticks)
+  # Default: 0 (starts the interval immediately)
+  start_time: 0
 
-# The amount of time in-between each time the hiders glow (in ticks)
-# Default: 3600 (3:00)
-glow_interval: 3600
+  # The amount of time in-between each time the hiders glow (in ticks)
+  # Default: 3600 (3:00)
+  interval: 3600
 
 # Lobby location details
 lobby:
-  world: world # Default: "world" - this refers to the primary world
-  x: 0.0 # Default: 0.0
-  y: 0.0 # Default: 0.0
-  z: 0.0 # Default: 0.0
+
+  # The name of the world used for the game
+  # Default: "world"
+  world: world
+  x: 0.0
+  y: 0.0
+  z: 0.0
+
+# Game location details
+game:
+
+  # The name of the world used for the game
+  # Default: "world"
+  world: world
+  hider_spawn:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  seeker_spawn:
+    x: 0.0
+    y: 0.0
+    z: 0.0
 
 # Game world border details
 border:

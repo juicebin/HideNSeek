@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.game.Game;
-import juicebin.hidenseek.game.GameHandler;
 import juicebin.hidenseek.util.MessageLevel;
 import juicebin.hidenseek.util.MessageUtils;
 import net.kyori.adventure.text.Component;
@@ -43,56 +42,17 @@ public class GameCommand extends RegisteredCommand {
             return true;
         }
 
-        GameHandler gameHandler = plugin.getGameHandler();
+        Game game = plugin.getGame();
 
         switch (args[0].toLowerCase(Locale.ROOT)) {
-            case "create" -> {
-                if (args.length != 8) return false;
-
-                // /game create <name> <hider-x> <hider-y> <hider-z> <seeker-x> <seeker-y> <seeker-z>
-                String name = args[1];
-                double hiderX = Double.parseDouble(args[2]);
-                double hiderY = Double.parseDouble(args[3]);
-                double hiderZ = Double.parseDouble(args[4]);
-                double seekerX = Double.parseDouble(args[5]);
-                double seekerY = Double.parseDouble(args[6]);
-                double seekerZ = Double.parseDouble(args[7]);
-
-                Location hiderLocation = new Location(player.getWorld(), hiderX, hiderY, hiderZ);
-                Location seekerLocation = new Location(player.getWorld(), seekerX, seekerY, seekerZ);
-
-                gameHandler.registerGame(new Game(this.plugin, name, player.getWorld(), this.plugin.getConfigInstance().getLobbyLocation(), hiderLocation, seekerLocation));
-                MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Game \"" + name + "\" successfully registered");
-            }
             case "view" -> {
-                if (args.length != 2) return false;
-
-                Game game = gameHandler.getGame(args[1]);
-                if (game == null) {
-                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no game with that specified ID.");
-                    return true;
-                }
-                MessageUtils.sendMessage(player, this.getGameInfo(game));
-            }
-            case "list" -> {
                 if (args.length != 1) return false;
 
-                List<Game> gameList = gameHandler.getGames();
-
-                if (gameList.size() > 0) {
-                    MessageUtils.sendMessage(player, this.getGameListInfo(gameList));
-                } else {
-                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There are no registered games.");
-                }
+                MessageUtils.sendMessage(player, this.getGameInfo(game));
             }
             case "start", "stop" -> {
-                if (args.length != 2) return false;
+                if (args.length != 1) return false;
 
-                Game game = plugin.getGameHandler().getGame(args[1]);
-                if (game == null) {
-                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no game with that specified ID.");
-                    return true;
-                }
                 switch (args[0].toLowerCase(Locale.ROOT)) {
                     case "start" -> {
                         // TODO: Countdown
@@ -102,7 +62,7 @@ public class GameCommand extends RegisteredCommand {
                             return true;
                         }
 
-                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Starting game \""+ game.getId() + "\"...");
+                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Starting game...");
                         game.start();
                     }
                     case "stop" -> {
@@ -111,32 +71,26 @@ public class GameCommand extends RegisteredCommand {
                             return true;
                         }
 
-                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Stopping game \""+ game.getId() + "\"...");
+                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Stopping game...");
                         game.stop();
                     }
                 }
             }
             case "manage" -> {
-                Game game = plugin.getGameHandler().getGame(args[1]);
-                if (game == null) {
-                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no game with that specified ID.");
-                    return true;
-                }
-
-                switch (args[2].toLowerCase(Locale.ROOT)) {
+                switch (args[1].toLowerCase(Locale.ROOT)) {
                     case "teams" -> {
                         // /game manage <name> teams manage <team> add-player <player>
-                        switch (args[3].toLowerCase(Locale.ROOT)) {
+                        switch (args[2].toLowerCase(Locale.ROOT)) {
                             case "manage" -> {
-                                Team team = game.getTeam(args[4]);
+                                Team team = game.getTeam(args[3]);
                                 if (team == null) {
                                     MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no team with that specified ID.");
                                     return true;
                                 }
 
-                                switch (args[5].toLowerCase(Locale.ROOT)) {
+                                switch (args[4].toLowerCase(Locale.ROOT)) {
                                     case "add-player", "remove-player" -> {
-                                        Player targetPlayer = Bukkit.getPlayer(args[6]);
+                                        Player targetPlayer = Bukkit.getPlayer(args[5]);
 
                                         if (targetPlayer == null) {
                                             MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no player online with that name.");
@@ -145,14 +99,14 @@ public class GameCommand extends RegisteredCommand {
 
                                         String msg = "";
 
-                                        switch (args[5].toLowerCase(Locale.ROOT)) {
+                                        switch (args[4].toLowerCase(Locale.ROOT)) {
                                             case "add-player" -> {
                                                 team.addPlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully added to team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
+                                                msg = String.format("Player '%s' successfully added to team '%s'.", player.getName(), team.getName());
                                             }
                                             case "remove-player" -> {
                                                 team.removePlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully removed from team '%s' in game '%s'.", player.getName(), team.getName(), game.getId());
+                                                msg = String.format("Player '%s' successfully removed from team '%s'.", player.getName(), team.getName());
                                             }
                                         }
 
@@ -193,7 +147,6 @@ public class GameCommand extends RegisteredCommand {
         if (!(sender instanceof Player player)) return List.of();
 
         Location location = player.getLocation();
-        List<String> gameNames = plugin.getGameHandler().getGames().stream().map(Game::getId).toList();
 
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "create" -> {
@@ -206,13 +159,6 @@ public class GameCommand extends RegisteredCommand {
                 };
             }
             case "start", "stop", "view" -> {
-                if (args.length == 2) {
-                    return gameNames;
-                } else {
-                    return List.of();
-                }
-            }
-            case "list" -> {
                 return List.of();
             }
             case "manage" -> {
@@ -281,8 +227,6 @@ public class GameCommand extends RegisteredCommand {
                 .append(this.createPrefixedComponent(
                         Component.text()
                                 .append(Component.text("Game Info:").color(NamedTextColor.WHITE))
-                                .append(Component.space())
-                                .append(Component.text("\"" + game.getId() + "\"")).color(NamedTextColor.YELLOW)
                                 .build()))
                 .append(Component.newline())
                 .append(this.createBulletedComponent(this.createLocationComponent("Hider Spawn", NamedTextColor.AQUA, game.getHiderSpawn())))
@@ -301,8 +245,6 @@ public class GameCommand extends RegisteredCommand {
         TextComponent.Builder builder = Component.text()
                 .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
                         .append(team.displayName())
-                        .append(Component.text(" in game ").color(NamedTextColor.WHITE))
-                        .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
                         .append(Component.text(":").color(NamedTextColor.WHITE))))
                 .append(Component.newline());
 
@@ -315,32 +257,9 @@ public class GameCommand extends RegisteredCommand {
         return builder.build();
     }
 
-    private TextComponent getGameListInfo(List<Game> gameList) {
-        TextComponent.Builder builder = Component.text();
-
-        builder.append(this.createPrefixedComponent(Component.text("List of Registered Games:").color(NamedTextColor.WHITE)));
-
-        for (Game game : gameList) {
-            builder
-                    .append(Component.newline())
-                    .append(this.createPrefixedComponent(
-                            Component.text(game.getId())
-                                    .color(NamedTextColor.YELLOW)
-                                    .hoverEvent(HoverEvent.showText(Component.text("Click to view info").color(NamedTextColor.AQUA)))
-                                    .clickEvent(ClickEvent.runCommand("/game view " + game.getId()))
-                                    .append(Component.text(" - ").color(NamedTextColor.WHITE))
-                                    .append(Component.text(game.isActive() ? "ACTIVE" : "INACTIVE").color(game.isActive() ? NamedTextColor.GREEN : NamedTextColor.RED))));
-        }
-
-        builder.append(Component.newline());
-        return builder.build();
-    }
-
     private TextComponent getTeamListInfo(Game game) {
         TextComponent.Builder builder = Component.text()
-                .append(this.createPrefixedComponent(Component.text("List of teams from game ").color(NamedTextColor.WHITE)
-                        .append(Component.text(game.getId()).color(NamedTextColor.YELLOW))
-                        .append(Component.text(":").color(NamedTextColor.WHITE))))
+                .append(this.createPrefixedComponent(Component.text("List of teams:").color(NamedTextColor.WHITE)))
                 .append(Component.newline());
 
         for (Team team : game.getTeams()) {
@@ -383,15 +302,15 @@ public class GameCommand extends RegisteredCommand {
     }
 
     private TextComponent createPlayerInfoComponent(String playerName, TextColor color, Game game) {
-        return this.createCommandComponent(playerName, color, "Click to show player info", "/game manage " + game.getId() + " display-player " + playerName);
+        return this.createCommandComponent(playerName, color, "Click to show player info", "/game manage display-player " + playerName);
     }
 
     private TextComponent createTeamInfoComponent(Team team, Game game) {
-        return this.createCommandComponent((TextComponent) team.displayName().color(team.color()), "Click to show team info", "/game manage " + game.getId() + " teams manage " + team.getName() + " info");
+        return this.createCommandComponent((TextComponent) team.displayName().color(team.color()), "Click to show team info", "/game manage teams manage " + team.getName() + " info");
     }
 
     private TextComponent createTeamListComponent(String label, TextColor color, Game game) {
-        return this.createCommandComponent(label, color, "Click to list teams", "/game manage " + game.getId() + " teams list");
+        return this.createCommandComponent(label, color, "Click to list teams", "/game manage teams list");
     }
 
     private TextComponent createLocationComponent(String label, TextColor color, Location loc) {
@@ -411,8 +330,8 @@ public class GameCommand extends RegisteredCommand {
     }
 
     private TextComponent createGameControlComponent(Game game) {
-        TextComponent stopComponent = this.createCommandComponent("Stop Game", NamedTextColor.RED, "Click to stop", "/game stop " + game.getId());
-        TextComponent startComponent = this.createCommandComponent("Start Game", NamedTextColor.GREEN, "Click to start", "/game start " + game.getId());
+        TextComponent stopComponent = this.createCommandComponent("Stop Game", NamedTextColor.RED, "Click to stop", "/game stop");
+        TextComponent startComponent = this.createCommandComponent("Start Game", NamedTextColor.GREEN, "Click to start", "/game start");
 
         return game.isActive() ? stopComponent : startComponent;
     }

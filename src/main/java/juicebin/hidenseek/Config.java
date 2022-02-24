@@ -1,6 +1,7 @@
 package juicebin.hidenseek;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -17,6 +18,9 @@ public final class Config {
     private final int glowStartTime;
     private final int glowInterval;
     private final Location lobbyLocation;
+    private final Location hiderSpawn;
+    private final Location seekerSpawn;
+    private final World gameWorld;
     private final List<String> seekerNames;
     private final List<String> hiderNamesAll;
     private final double borderCenterX;
@@ -34,8 +38,8 @@ public final class Config {
 
         this.hideTime = config.getInt("hide_time");
         this.matchTime = config.getInt("match_time");
-        this.glowStartTime = config.getInt("glow_start");
-        this.glowInterval = config.getInt("glow_interval");
+        this.glowStartTime = config.getInt("glow.start_time");
+        this.glowInterval = config.getInt("glow.interval");
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
         this.lobbyLocation = new Location(
@@ -44,6 +48,19 @@ public final class Config {
                 config.getDouble("lobby.y"),
                 config.getDouble("lobby.z")
         );
+        this.hiderSpawn = new Location(
+                instance.getServer().getWorld(config.getString("game.world")),
+                config.getDouble("game.hider_spawn.x"),
+                config.getDouble("game.hider_spawn.y"),
+                config.getDouble("game.hider_spawn.z")
+        );
+        this.seekerSpawn = new Location(
+                instance.getServer().getWorld(config.getString("game.world")),
+                config.getDouble("game.seeker_spawn.x"),
+                config.getDouble("game.seeker_spawn.y"),
+                config.getDouble("game.seeker_spawn.z")
+        );
+        this.gameWorld = instance.getServer().getWorld(config.getString("game.world"));
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
             hiderNamesAll.addAll(hiders.getStringList(key));
@@ -60,28 +77,12 @@ public final class Config {
         this.matchWarningTimes = config.getIntegerList("match_stop_warning_times");
     }
 
-    public List<String> getHiderTeam(String id) {
-        return config.getConfigurationSection("hiders").getStringList(id);
-    }
-
     public int getHideTime() {
         return hideTime;
     }
 
     public int getMatchTime() {
         return matchTime;
-    }
-
-    public int getBorderShrinkStartTime() {
-        return borderShrinkStartTime;
-    }
-
-    public int getBorderShrinkInterval() {
-        return borderShrinkInterval;
-    }
-
-    public double getBorderShrinkSize() {
-        return borderShrinkSize;
     }
 
     public int getGlowStartTime() {
@@ -104,6 +105,18 @@ public final class Config {
         return isDebugMode;
     }
 
+    public int getBorderShrinkStartTime() {
+        return borderShrinkStartTime;
+    }
+
+    public int getBorderShrinkInterval() {
+        return borderShrinkInterval;
+    }
+
+    public double getBorderShrinkSize() {
+        return borderShrinkSize;
+    }
+
     public double getBorderCenterX() {
         return borderCenterX;
     }
@@ -122,5 +135,17 @@ public final class Config {
 
     public List<Integer> getMatchWarningTimes() {
         return matchWarningTimes;
+    }
+
+    public Location getHiderSpawn() {
+        return hiderSpawn;
+    }
+
+    public Location getSeekerSpawn() {
+        return seekerSpawn;
+    }
+
+    public World getGameWorld() {
+        return gameWorld;
     }
 }

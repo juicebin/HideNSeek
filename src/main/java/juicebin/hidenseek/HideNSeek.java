@@ -2,7 +2,7 @@ package juicebin.hidenseek;
 
 import juicebin.hidenseek.command.Commands;
 import juicebin.hidenseek.command.GameCommand;
-import juicebin.hidenseek.game.GameHandler;
+import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
 import me.lucko.commodore.Commodore;
@@ -28,7 +28,7 @@ public final class HideNSeek extends JavaPlugin {
     private Config configInstance;
     private FileConfiguration teamConfig;
     private Commodore commodore;
-    private GameHandler gameHandler;
+    private Game game;
 
     @Override
     public void onEnable() {
@@ -39,7 +39,13 @@ public final class HideNSeek extends JavaPlugin {
 
         this.configInstance = new Config(this);
         this.commodore = CommodoreProvider.getCommodore(this);
-        this.gameHandler = new GameHandler();
+        this.game = new Game(
+                this,
+                configInstance.getGameWorld(),
+                configInstance.getLobbyLocation(),
+                configInstance.getHiderSpawn(),
+                configInstance.getSeekerSpawn()
+        );
 
         // Register listeners
         Listeners listeners = new Listeners(
@@ -97,10 +103,6 @@ public final class HideNSeek extends JavaPlugin {
         Bukkit.getLogger().log(level, LOG_PREFIX + msg);
     }
 
-    public GameHandler getGameHandler() {
-        return gameHandler;
-    }
-
     public static TextComponent getPrefix() {
         return Component.text()
                 .style(Style.style(TextDecoration.BOLD))
@@ -110,5 +112,9 @@ public final class HideNSeek extends JavaPlugin {
                 .append(Component.text("S").color(NamedTextColor.YELLOW))
                 .append(Component.text("]").color(NamedTextColor.DARK_GRAY))
                 .build().append(Component.text().style(Style.empty()));
+    }
+
+    public Game getGame() {
+        return game;
     }
 }
