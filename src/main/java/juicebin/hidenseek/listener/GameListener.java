@@ -4,6 +4,9 @@ import juicebin.hidenseek.Config;
 import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import juicebin.hidenseek.game.Game;
+import juicebin.hidenseek.game.HidingTeam;
+import juicebin.hidenseek.game.SeekingTeam;
+import juicebin.hidenseek.game.AbstractTeam;
 import juicebin.hidenseek.util.MessageUtils;
 import juicebin.hidenseek.util.ScoreHelper;
 import net.kyori.adventure.text.Component;
@@ -14,16 +17,14 @@ import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 
 import static juicebin.hidenseek.HideNSeek.log;
 
-public class GameListener extends RegisteredListener {
+public final class GameListener extends RegisteredListener {
     private final HideNSeek plugin;
 
     public GameListener(HideNSeek instance) {
@@ -48,8 +49,8 @@ public class GameListener extends RegisteredListener {
         Game game = event.getGame();
         World world = game.getWorld();
 
-        Team seekingTeam = game.getSeekingTeam();
-        Set<Team> hidingTeams = game.getHidingTeams();
+        SeekingTeam seekingTeam = game.getSeekingTeam();
+        List<HidingTeam> hidingTeams = game.getHidingTeams();
 
         // Send game start message
 
@@ -62,31 +63,21 @@ public class GameListener extends RegisteredListener {
         log(Level.INFO, "Event called: GameStopEvent");
 
         Game game = event.getGame();
-        World world = game.getWorld();
 
-        // Send message
-
-        // TP all players to lobby
-        game.teleportSeekers(game.getLobbyLocation());
-        game.teleportHiders(game.getLobbyLocation());
-
-        // Give all players gamemode survival
+        // TP all players to lobby and give all players gamemode survival
         for (Player player : Bukkit.getOnlinePlayers()) {
+            player.teleport(game.getLobbyLocation());
             player.setGameMode(GameMode.SURVIVAL);
         }
 
         if (!event.isForced()) {
-            List<Team> winningTeams = new ArrayList<>();
+            List<AbstractTeam> winningTeams = new ArrayList<>();
 
             // Decides the winning teams
-            List<Team> activeTeams = game.getActiveTeams();
-            List<String> activeTeamNames = activeTeams.stream().map(Team::getName).toList();
-            if (activeTeamNames.stream().anyMatch(s -> s.startsWith("hiders-"))) {
+            List<HidingTeam> activeHidingTeams = game.getActiveHidingTeams();
+            if (activeHidingTeams.size() > 1) {
                 // The remaining hider teams win
-                List<Team> hidingTeams = activeTeams.stream()
-                        .filter(t -> t.getName().startsWith("hiders-")).toList();
-
-                winningTeams.addAll(hidingTeams);
+                winningTeams.addAll(activeHidingTeams);
             } else {
                 winningTeams.add(game.getSeekingTeam());
             }
@@ -95,13 +86,13 @@ public class GameListener extends RegisteredListener {
             TextComponent.Builder builder = Component.text();
 
             if (winningTeams.size() == 1) {
-                Team winningTeam = winningTeams.get(0);
-                builder.append(winningTeam.displayName());
-            } else if (winningTeams.size() > 1) {
+                AbstractTeam winningTeam = winningTeams.get(0);
+                builder.append(winningTeam.getDisplayName());
+            } else {
                 for (int i = 0; i < winningTeams.size(); i++) {
-                    Team winningTeam = winningTeams.get(i);
+                    AbstractTeam winningTeam = winningTeams.get(i);
 
-                    builder.append(winningTeam.displayName());
+                    builder.append(winningTeam.getDisplayName());
 
                     // INDEX  : 0, 1, 2, 3 and 4
                     // LENGTH : 1  2  3  4     5
@@ -112,8 +103,6 @@ public class GameListener extends RegisteredListener {
                         builder.append(Component.text(", ").color(NamedTextColor.WHITE));
                     }
                 }
-            } else {
-                // TODO: send error
             }
 
             TextComponent winningMessage = builder.build()
@@ -121,13 +110,16 @@ public class GameListener extends RegisteredListener {
                     .append(Component.text("WINS!").color(NamedTextColor.WHITE));
 
             // Send message who wins
+            // TODO: Also send that the game has ended
             MessageUtils.broadcast(winningMessage);
 
             // Change scoreboard to show who wins
-            for (Player player : event.getGame().getPlayers()) {
+            for (Player player : event.getGame().getOnlinePlayers()) {
                 ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
-
+                // TODO: Change scoreboard to show who won
             }
+        } else {
+            // TODO: Send that the game was forcefully stopped
         }
     }
 
@@ -137,6 +129,8 @@ public class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
         World world = game.getWorld();
+
+        // TODO: HidersGlowEvent
     }
 
     @EventHandler
@@ -145,6 +139,8 @@ public class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
         World world = game.getWorld();
+
+        // TODO: Seeker release message
 
         // TP seekers to seeker spawn
         game.teleportSeekers(game.getSeekerSpawn());
@@ -159,6 +155,8 @@ public class GameListener extends RegisteredListener {
         if (event.isFirstEvent()) {
             MessageUtils.sendWarningTitle("THE BORDER IS STARTING TO SHRINK");
         }
+
+        // TODO: Send warning message
 
         // Decrease the world border size from A to B over X amount of time
         Config config = plugin.getConfigInstance();
@@ -181,14 +179,19 @@ public class GameListener extends RegisteredListener {
         // Give ability to see all hiders and seekers client-side
 
 
-        Team hidingTeam = game.getTeam(hider);
+        HidingTeam hidingTeam = game.getHidingTeam(hider.getUniqueId());
 
-        // Eliminate team if they were the last one
-        if (hidingTeam.getSize() == 1) {
-            game.removeActiveTeam(hidingTeam);
-            // TODO: Send elimination message
+        if (hidingTeam != null) {
+            // Eliminate team if they were the last one
+            List<Player> onlinePlayers = hidingTeam.getOnlinePlayers();
+            if (onlinePlayers != null && onlinePlayers.size() <= 1) {
+                hidingTeam.setActive(false);
+                // TODO: Send elimination message
+            }
+
+            // Set player to inactive
+            hidingTeam.setPlayerActive(hider, false);
         }
-        game.removeActivePlayer(hider);
     }
 
 }

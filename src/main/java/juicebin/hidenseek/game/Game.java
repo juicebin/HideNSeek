@@ -10,7 +10,6 @@ import juicebin.hidenseek.util.SoundUtils;
 import juicebin.hidenseek.util.TickUtils;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
@@ -22,20 +21,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import static juicebin.hidenseek.HideNSeek.log;
 
 public final class Game implements Listener {
     private final List<UUID> taggedPlayers = new ArrayList<>();
+    private final Map<String, HidingTeam> hidingTeamMap = new HashMap<>();
+    private final SeekingTeam seekingTeam;
     private final HideNSeek plugin;
     private final World world;
     private final Location lobbyLocation;
@@ -50,8 +46,6 @@ public final class Game implements Listener {
     private boolean hidersStartGlow;
     private int teamCount;
     private int ticks;
-    private List<Team> activeTeams;
-    private List<Player> activePlayers;
 
     public Game(HideNSeek instance, World world, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
         this.plugin = instance;
@@ -68,21 +62,41 @@ public final class Game implements Listener {
         // Initialize hiding teams
         ConfigurationSection hiders = teamConfig.getConfigurationSection("hiders");
         for (String key : hiders.getKeys(false)) {
-            String teamName = "hiders-" + key;
-            Team team = this.scoreboard.registerNewTeam(teamName);
-            key = "hiders." + key;
-            NamedTextColor color = NamedTextColor.NAMES.value(teamConfig.getString(key + ".color"));
-            team.displayName(Component.text(teamConfig.getString(key + ".display-name")));
-            team.color(color);
-            team.addEntries(hiders.getStringList(key + ".players"));
+            ConfigurationSection teamSection = hiders.getConfigurationSection(key);
+            String displayName = teamSection.getString("display-name");
+            TextColor color = TextColor.color(teamSection.getInt("color"));
+            ConfigurationSection players = teamSection.getConfigurationSection("players");
+
+            HidingTeam team = new HidingTeam(key, displayName, color);
+            for (String playerName : players.getKeys(false)) {
+                UUID uuid = UUID.fromString(players.getString(playerName));
+                team.addPlayer(uuid);
+            }
+
+            hidingTeamMap.put(key, team);
         }
 
         // Initialize seeking team
-        Team team = this.scoreboard.registerNewTeam("seekers");
-        NamedTextColor color = NamedTextColor.NAMES.value(teamConfig.getString("seekers.color"));
-        team.displayName(Component.text(teamConfig.getString("seekers.display-name")));
-        team.color(color);
-        team.addEntries(teamConfig.getStringList("seekers.players"));
+        ConfigurationSection seekers = teamConfig.getConfigurationSection("seekers");
+        String displayName = seekers.getString("display-name");
+        TextColor color = TextColor.color(seekers.getInt("color"));
+        ConfigurationSection players = seekers.getConfigurationSection("players");
+
+        SeekingTeam team = new SeekingTeam("seekers", displayName, color);
+        for (String playerName : players.getKeys(false)) {
+            UUID uuid = UUID.fromString(players.getString(playerName));
+            team.addPlayer(uuid);
+        }
+
+        this.seekingTeam = team;
+
+        // Add scoreboard teams (solely for nameplates)
+        for (HidingTeam hidingTeam : hidingTeamMap.values()) {
+            Team scoreboardTeam = this.scoreboard.registerNewTeam(hidingTeam.getId());
+            hidingTeam.getOfflinePlayers().forEach(scoreboardTeam::addPlayer);
+        }
+        Team scoreboardTeam = this.scoreboard.registerNewTeam(seekingTeam.getId());
+        seekingTeam.getOfflinePlayers().forEach(scoreboardTeam::addPlayer);
     }
 
     public void start() {
@@ -91,17 +105,19 @@ public final class Game implements Listener {
 
         this.initWorldBorder();
 
+        // Untag players and set all teams to active
+        for (HidingTeam team : this.getHidingTeams()) {
+            for (OfflinePlayer player : team.getOfflinePlayers()) {
+                team.setPlayerActive(player, false);
+            }
+            team.setActive(true);
+        }
+
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
 
-        // Add players to active players
-        activePlayers.addAll(this.getPlayers());
-
-        // Add teams to active teams
-        activeTeams.addAll(this.getTeams());
-
         // Hide nameplates for other teams
-        for (Team team : this.getTeams()) {
+        for (Team team : this.scoreboard.getTeams()) {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         }
 
@@ -121,7 +137,7 @@ public final class Game implements Listener {
         this.resetWorldBorder();
 
         // Show nameplates
-        for (Team team : this.getTeams()) {
+        for (Team team : this.scoreboard.getTeams()) {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         }
 
@@ -169,6 +185,12 @@ public final class Game implements Listener {
             }
         }
 
+        for (int time : config.getGlowWarningTimes()) {
+            if (ticks == this.config.getGlowStartTime() + time) {
+                this.sendWarningAlert("Hiders starting to glow in", time);
+            }
+        }
+
         if (ticks <= config.getGlowStartTime()) {
             if (!hidersStartGlow) {
                 hidersStartGlow = true;
@@ -191,7 +213,7 @@ public final class Game implements Listener {
             }
         }
 
-        if (ticks <= 0 || this.getPlayerCount() <= 0) {
+        if (ticks <= 0 || this.getActiveHiders().size() <= 0) {
             this.stop(false);
         }
     }
@@ -250,73 +272,50 @@ public final class Game implements Listener {
     }
 
     public boolean isSeeker(Player player) {
-        Team seekers = this.scoreboard.getTeam("seekers");
-        if (seekers == null) {
-            // TODO: Send error
-            return false;
-        }
-        return seekers.hasPlayer(player);
+        return this.seekingTeam.hasPlayer(player.getUniqueId());
     }
 
     public boolean isHider(Player player) {
-        List<Set<String>> entryList = this.scoreboard.getTeams()
-                .stream()
-                .filter(t -> t.getName().startsWith("hiders-"))
-                .map(Team::getEntries)
-                .collect(Collectors.toList());
-
-        for (Set<String> strings : entryList) {
-            if (strings.contains(player.getName())) {
+        for (HidingTeam team : this.getHidingTeams()) {
+            if (team.hasPlayer(player.getUniqueId())) {
                 return true;
             }
         }
         return false;
     }
 
-    public Set<Team> getTeams() {
-        return this.scoreboard.getTeams();
+    public SeekingTeam getSeekingTeam() {
+        return seekingTeam;
     }
 
-    public Team getSeekingTeam() {
-        return this.getTeam("seekers");
+    public List<HidingTeam> getHidingTeams() {
+        return hidingTeamMap.values().stream().toList();
     }
 
-    public Set<Team> getHidingTeams() {
-        return this.getTeams().stream().filter(t -> t.getName().startsWith("hider-")).collect(Collectors.toSet());
+    public AbstractTeam getHidingTeam(String teamName) {
+        return hidingTeamMap.get(teamName);
     }
 
-    public Team getTeam(String teamName) {
-        return this.scoreboard.getTeam(teamName);
-    }
-
-    public Team getTeam(OfflinePlayer player) {
-        return this.scoreboard.getPlayerTeam(player);
-    }
-
-    public void addTeam(String teamName, NamedTextColor color, Component prefix) {
-        if (this.scoreboard.getTeam(teamName) != null) {
-            // TODO: Send error
-            return;
+    public AbstractTeam getTeam(UUID uuid) {
+        if (this.seekingTeam.hasPlayer(uuid)) {
+            return seekingTeam;
         }
 
-        Team team = this.scoreboard.registerNewTeam(teamName);
-        team.color(color);
-        team.prefix(prefix);
+        return this.getHidingTeam(uuid) != null ? this.getHidingTeam(uuid) : null;
     }
 
-    public void removeTeam(String teamName) {
-        Team team = this.scoreboard.getTeam(teamName);
-        if (team != null) {
-            team.unregister();
-        } else {
-            // TODO: Send error
+    public HidingTeam getHidingTeam(UUID uuid) {
+        for (HidingTeam hidingTeam : this.getHidingTeams()) {
+            if (hidingTeam.hasPlayer(uuid)) {
+                return hidingTeam;
+            }
         }
+        return null;
     }
 
     public void teleportHiders(Location location) {
-        for (Team team : this.getHidingTeams()) {
-            for (String entry : team.getEntries()) {
-                Player player = Bukkit.getPlayer(entry);
+        for (AbstractTeam team : this.getHidingTeams()) {
+            for (Player player : team.getOnlinePlayers()) {
                 if (player == null) {
                     log(Level.WARNING, "Tried to teleport non-player entry from the HIDERS team. Skipping...");
                     continue;
@@ -327,8 +326,7 @@ public final class Game implements Listener {
     }
 
     public void teleportSeekers(Location location) {
-        for (String entry : this.getSeekingTeam().getEntries()) {
-            Player player = Bukkit.getPlayer(entry);
+        for (Player player : this.getSeekingTeam().getOnlinePlayers()) {
             if (player == null) {
                 log(Level.WARNING, "Tried to teleport non-player entry from the SEEKERS team. Skipping...");
                 continue;
@@ -353,6 +351,32 @@ public final class Game implements Listener {
         }
 
         this.world.getWorldBorder().setSize(size, seconds);
+    }
+
+    public List<Player> getOnlinePlayers() {
+        List<Player> playerList = new ArrayList<>(this.getSeekingTeam().getOnlinePlayers());
+        for (HidingTeam hidingTeam : this.getHidingTeams()) {
+            playerList.addAll(hidingTeam.getOnlinePlayers());
+        }
+
+        return playerList;
+    }
+
+    public List<HidingTeam> getActiveHidingTeams() {
+        return this.getHidingTeams().stream()
+                .filter(HidingTeam::isActive)
+                .toList();
+    }
+
+    public List<UUID> getActiveHiders() {
+        List<UUID> untaggedHiders = new ArrayList<>();
+        for (HidingTeam hidingTeam : this.getHidingTeams()) {
+            untaggedHiders.addAll(hidingTeam.getUuidList().stream()
+                    .filter(u -> !hidingTeam.getInactivePlayers().contains(u))
+                    .toList());
+        }
+
+        return untaggedHiders;
     }
 
     @EventHandler
@@ -383,56 +407,5 @@ public final class Game implements Listener {
             // Cancel player vs player damage (disable damage in the world while the game the running)
             event.setCancelled(true);
         }
-    }
-
-    public int getPlayerCount() {
-        return this.getActivePlayers().size();
-    }
-
-    public int getTeamCount() {
-        return teamCount;
-    }
-
-    public void setTeamCount(int teamCount) {
-        this.teamCount = teamCount;
-    }
-
-    public List<Player> getPlayers() {
-        List<List<Player>> playerLists = this.getTeams().stream()
-                .map(Team::getEntries)
-                .map(set -> {
-                    return set.stream()
-                            .filter(str -> Bukkit.getPlayer(str) != null)
-                            .map(Bukkit::getPlayer)
-                            .toList();
-                }).toList();
-
-        List<Player> playerList = new ArrayList<>();
-        playerLists.forEach(playerList::addAll);
-        return playerList;
-    }
-
-    public List<Team> getActiveTeams() {
-        return activeTeams;
-    }
-
-    public List<Player> getActivePlayers() {
-        return activePlayers;
-    }
-
-    public void removeActiveTeam(Team team) {
-        activeTeams.remove(team);
-    }
-
-    public void addActiveTeam(Team team) {
-        activeTeams.add(team);
-    }
-
-    public void removeActivePlayer(Player player) {
-        activePlayers.remove(player);
-    }
-
-    public void addActivePlayer(Player player) {
-        activePlayers.add(player);
     }
 }

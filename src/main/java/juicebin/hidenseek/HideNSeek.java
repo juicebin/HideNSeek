@@ -5,6 +5,7 @@ import juicebin.hidenseek.command.GameCommand;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
+import juicebin.hidenseek.listener.PlayerJoinListener;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import net.kyori.adventure.text.Component;
@@ -49,7 +50,8 @@ public final class HideNSeek extends JavaPlugin {
 
         // Register listeners
         Listeners listeners = new Listeners(
-                new GameListener(this)
+                new GameListener(this),
+                new PlayerJoinListener()
         );
         listeners.register(this);
 

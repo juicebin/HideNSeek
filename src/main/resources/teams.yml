@@ -1,21 +1,19 @@
 seekers:
   display-name: Seekers
-  color: red
+  color: 0xFFFFFF
   players:
-    - juicebin
-    - OriLovesTea
-    - DotWavJordan
-    - EnderGamingYT
+    juicebin: 1892fffd-de1d-4824-811c-f5cc01839369
+    OriLovesTea: 1892fffd-de1d-4824-811c-f5cc01839369
 hiders:
   team-1:
     display-name: Team 1
-    color: aqua
+    color: 0xFFFFFF
     players:
-      - RobboFunny
-      - AdrianahLee
+      RobboFunny: 1892fffd-de1d-4824-811c-f5cc01839369
+      AdrianahLee: 1892fffd-de1d-4824-811c-f5cc01839369
   team-2:
     display-name: Team 2
-    color: green
+    color: 0xFFFFFF
     players:
-      - Fluctra
-      - roseriie
+      Fluctra: d5518f3b-3e66-4e80-8fc6-81301fb2f05e
+      roseriie: d5518f3b-3e66-4e80-8fc6-81301fb2f05e

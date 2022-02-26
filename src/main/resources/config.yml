@@ -34,6 +34,9 @@ glow:
   # Default: 3600 (3:00)
   interval: 3600
 
+  # The times before the start_time when a warning will be sent before the glowing starts
+  warning_times:
+
 # Lobby location details
 lobby:
 

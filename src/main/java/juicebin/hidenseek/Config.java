@@ -29,6 +29,7 @@ public final class Config {
     private final long borderShrinkTime;
     private final List<Integer> borderWarningTimes;
     private final List<Integer> matchWarningTimes;
+    private final List<Integer> glowWarningTimes;
     private final boolean isDebugMode;
 
     public Config(HideNSeek instance) {
@@ -41,6 +42,7 @@ public final class Config {
         this.matchTime = config.getInt("match_time");
         this.glowStartTime = config.getInt("glow.start_time");
         this.glowInterval = config.getInt("glow.interval");
+        this.glowWarningTimes = config.getIntegerList("glow.warning_times");
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
         this.lobbyLocation = new Location(
@@ -153,5 +155,9 @@ public final class Config {
 
     public long getBorderShrinkTime() {
         return borderShrinkTime;
+    }
+
+    public List<Integer> getGlowWarningTimes() {
+        return glowWarningTimes;
     }
 }

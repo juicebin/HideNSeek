@@ -11,8 +11,7 @@
 - [ ] Make team management commands (adding and removing players from a team)
 
 # TODO
-- [x] Organize GameCommand components (e.g. getTeamInfo similar to getPlayerInfo)
-- [ ] Game player count and team count
+- [ ] Make custom Team classes and stuff
 - [ ] Fix team colors
 - [ ] Fix chat prefix
 - [ ] `/games` command (alias for `/games list`)
