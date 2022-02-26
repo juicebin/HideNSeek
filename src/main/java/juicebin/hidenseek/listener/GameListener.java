@@ -5,6 +5,10 @@ import juicebin.hidenseek.HideNSeek;
 import juicebin.hidenseek.event.*;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.util.MessageUtils;
+import juicebin.hidenseek.util.ScoreHelper;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
@@ -12,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -32,6 +38,8 @@ public class GameListener extends RegisteredListener {
     //  - [ ] shrinking border after x amount of time
     //  - [ ] start glowing intervals
     //  - [ ] give seekers a trail
+
+    // TODO: Fix player count when player joins/leaves
 
     @EventHandler
     public void onGameStartEvent(GameStartEvent event) {
@@ -67,8 +75,60 @@ public class GameListener extends RegisteredListener {
             player.setGameMode(GameMode.SURVIVAL);
         }
 
-        // Send message who wins
-        // Change scoreboard to show who wins
+        if (!event.isForced()) {
+            List<Team> winningTeams = new ArrayList<>();
+
+            // Decides the winning teams
+            List<Team> activeTeams = game.getActiveTeams();
+            List<String> activeTeamNames = activeTeams.stream().map(Team::getName).toList();
+            if (activeTeamNames.stream().anyMatch(s -> s.startsWith("hiders-"))) {
+                // The remaining hider teams win
+                List<Team> hidingTeams = activeTeams.stream()
+                        .filter(t -> t.getName().startsWith("hiders-")).toList();
+
+                winningTeams.addAll(hidingTeams);
+            } else {
+                winningTeams.add(game.getSeekingTeam());
+            }
+
+            // Create winning message
+            TextComponent.Builder builder = Component.text();
+
+            if (winningTeams.size() == 1) {
+                Team winningTeam = winningTeams.get(0);
+                builder.append(winningTeam.displayName());
+            } else if (winningTeams.size() > 1) {
+                for (int i = 0; i < winningTeams.size(); i++) {
+                    Team winningTeam = winningTeams.get(i);
+
+                    builder.append(winningTeam.displayName());
+
+                    // INDEX  : 0, 1, 2, 3 and 4
+                    // LENGTH : 1  2  3  4     5
+
+                    if (i == winningTeams.size() - 1) {
+                        builder.append(Component.text(" and ").color(NamedTextColor.WHITE));
+                    } else if (i != winningTeams.size() - 2) {
+                        builder.append(Component.text(", ").color(NamedTextColor.WHITE));
+                    }
+                }
+            } else {
+                // TODO: send error
+            }
+
+            TextComponent winningMessage = builder.build()
+                    .append(Component.space())
+                    .append(Component.text("WINS!").color(NamedTextColor.WHITE));
+
+            // Send message who wins
+            MessageUtils.broadcast(winningMessage);
+
+            // Change scoreboard to show who wins
+            for (Player player : event.getGame().getPlayers()) {
+                ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
+
+            }
+        }
     }
 
     @EventHandler
@@ -109,6 +169,8 @@ public class GameListener extends RegisteredListener {
     public void onSeekerTagHider(SeekerTagHiderEvent event) {
         log(Level.INFO, "Event called: SeekerTagHiderEvent");
 
+        Player hider = event.getHider();
+        Player seeker = event.getSeeker();
         Game game = event.getGame();
 
         // Send tag message
@@ -118,7 +180,15 @@ public class GameListener extends RegisteredListener {
 
         // Give ability to see all hiders and seekers client-side
 
-        // Lower player left count
+
+        Team hidingTeam = game.getTeam(hider);
+
+        // Eliminate team if they were the last one
+        if (hidingTeam.getSize() == 1) {
+            game.removeActiveTeam(hidingTeam);
+            // TODO: Send elimination message
+        }
+        game.removeActivePlayer(hider);
     }
 
 }

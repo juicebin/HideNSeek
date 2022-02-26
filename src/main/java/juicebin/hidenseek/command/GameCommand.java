@@ -73,7 +73,7 @@ public class GameCommand extends RegisteredCommand {
                         }
 
                         MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Stopping game...");
-                        game.stop();
+                        game.stop(true);
                     }
                 }
             }

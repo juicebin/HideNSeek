@@ -48,7 +48,10 @@ public final class Game implements Listener {
     private boolean seekersReleased;
     private boolean borderStartedShrink;
     private boolean hidersStartGlow;
+    private int teamCount;
     private int ticks;
+    private List<Team> activeTeams;
+    private List<Player> activePlayers;
 
     public Game(HideNSeek instance, World world, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
         this.plugin = instance;
@@ -91,6 +94,12 @@ public final class Game implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().callEvent(new GameStartEvent(this));
 
+        // Add players to active players
+        activePlayers.addAll(this.getPlayers());
+
+        // Add teams to active teams
+        activeTeams.addAll(this.getTeams());
+
         // Hide nameplates for other teams
         for (Team team : this.getTeams()) {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
@@ -99,9 +108,9 @@ public final class Game implements Listener {
         log(Level.INFO, "Starting registered game...");
     }
 
-    public void stop() {
+    public void stop(boolean forced) {
         HandlerList.unregisterAll(this);
-        Bukkit.getPluginManager().callEvent(new GameStopEvent(this));
+        Bukkit.getPluginManager().callEvent(new GameStopEvent(this, forced));
 
         ticks = 0;
         active = false;
@@ -182,8 +191,8 @@ public final class Game implements Listener {
             }
         }
 
-        if (ticks <= 0) {
-            this.stop();
+        if (ticks <= 0 || this.getPlayerCount() <= 0) {
+            this.stop(false);
         }
     }
 
@@ -346,10 +355,6 @@ public final class Game implements Listener {
         this.world.getWorldBorder().setSize(size, seconds);
     }
 
-    public void decreaseWorldBorderSize(double size, long seconds) {
-        this.setWorldBorderSize(this.world.getWorldBorder().getSize() - size, seconds);
-    }
-
     @EventHandler
     public void onTick(ServerTickStartEvent event) {
         this.tick();
@@ -378,5 +383,56 @@ public final class Game implements Listener {
             // Cancel player vs player damage (disable damage in the world while the game the running)
             event.setCancelled(true);
         }
+    }
+
+    public int getPlayerCount() {
+        return this.getActivePlayers().size();
+    }
+
+    public int getTeamCount() {
+        return teamCount;
+    }
+
+    public void setTeamCount(int teamCount) {
+        this.teamCount = teamCount;
+    }
+
+    public List<Player> getPlayers() {
+        List<List<Player>> playerLists = this.getTeams().stream()
+                .map(Team::getEntries)
+                .map(set -> {
+                    return set.stream()
+                            .filter(str -> Bukkit.getPlayer(str) != null)
+                            .map(Bukkit::getPlayer)
+                            .toList();
+                }).toList();
+
+        List<Player> playerList = new ArrayList<>();
+        playerLists.forEach(playerList::addAll);
+        return playerList;
+    }
+
+    public List<Team> getActiveTeams() {
+        return activeTeams;
+    }
+
+    public List<Player> getActivePlayers() {
+        return activePlayers;
+    }
+
+    public void removeActiveTeam(Team team) {
+        activeTeams.remove(team);
+    }
+
+    public void addActiveTeam(Team team) {
+        activeTeams.add(team);
+    }
+
+    public void removeActivePlayer(Player player) {
+        activePlayers.remove(player);
+    }
+
+    public void addActivePlayer(Player player) {
+        activePlayers.add(player);
     }
 }

@@ -1,11 +1,14 @@
 package juicebin.hidenseek.listener;
 
+import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.util.ScoreHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Team;
 
 public class PlayerJoinListener extends RegisteredListener {
@@ -17,11 +20,29 @@ public class PlayerJoinListener extends RegisteredListener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        ScoreHelper scoreHelper = ScoreHelper.createScore(event.getPlayer());
-        Team team = plugin.getGame().getTeam(event.getPlayer());
+        Player player = event.getPlayer();
+        ScoreHelper scoreHelper = ScoreHelper.createScore(player);
+        Game game = plugin.getGame();
+        Team team = game.getTeam(player);
 
         scoreHelper.setTitle(title);
         scoreHelper.setSlot(2, "&fTeam: " + team.getName()); // TODO: team color
+
+        // If the game is active and the player was on a team, add them back to the active player list
+        if (game.isActive() && game.getTeam(player) != null) {
+            game.addActivePlayer(player);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        Game game = plugin.getGame();
+
+        // If the game is active and the player was on a team, remove them from the active player list
+        if (game.isActive() && game.getTeam(player) != null) {
+            game.removeActivePlayer(player);
+        }
     }
 
 }
