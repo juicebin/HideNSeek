@@ -292,8 +292,12 @@ public final class Game implements Listener {
         return hidingTeamMap.values().stream().toList();
     }
 
-    public AbstractTeam getHidingTeam(String teamName) {
-        return hidingTeamMap.get(teamName);
+    public AbstractTeam getTeam(String teamName) {
+        if (Objects.equals(teamName, "seekers")) {
+            return this.getSeekingTeam();
+        } else {
+            return hidingTeamMap.get(teamName);
+        }
     }
 
     public AbstractTeam getTeam(UUID uuid) {
@@ -302,6 +306,10 @@ public final class Game implements Listener {
         }
 
         return this.getHidingTeam(uuid) != null ? this.getHidingTeam(uuid) : null;
+    }
+
+    public AbstractTeam getTeam(Player player) {
+        return this.getTeam(player.getUniqueId());
     }
 
     public HidingTeam getHidingTeam(UUID uuid) {

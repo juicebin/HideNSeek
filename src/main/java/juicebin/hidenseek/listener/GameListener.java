@@ -17,6 +17,7 @@ import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.inventivetalent.glow.GlowAPI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ import java.util.logging.Level;
 import static juicebin.hidenseek.HideNSeek.log;
 
 public final class GameListener extends RegisteredListener {
+    private static final GlowAPI.Color TEAM_MEMBER_COLOR = GlowAPI.Color.GREEN;
+    private static final GlowAPI.Color NEUTRAL_GLOW_COLOR = GlowAPI.Color.BLUE;
+    private static final GlowAPI.Color ENEMY_GLOW_COLOR = GlowAPI.Color.RED;
     private final HideNSeek plugin;
 
     public GameListener(HideNSeek instance) {
@@ -56,6 +60,8 @@ public final class GameListener extends RegisteredListener {
 
         // TP hiders to hider spawn
         game.teleportHiders(game.getHiderSpawn());
+
+        // TODO: Everyone can see their allies
     }
 
     @EventHandler
@@ -69,6 +75,8 @@ public final class GameListener extends RegisteredListener {
             player.teleport(game.getLobbyLocation());
             player.setGameMode(GameMode.SURVIVAL);
         }
+
+        // TODO: Remove all glows
 
         if (!event.isForced()) {
             List<AbstractTeam> winningTeams = new ArrayList<>();

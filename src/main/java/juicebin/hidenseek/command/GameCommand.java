@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import juicebin.hidenseek.HideNSeek;
+import juicebin.hidenseek.game.AbstractTeam;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.util.MessageLevel;
 import juicebin.hidenseek.util.MessageUtils;
@@ -83,7 +84,7 @@ public class GameCommand extends RegisteredCommand {
                         // /game manage <name> teams manage <team> add-player <player>
                         switch (args[2].toLowerCase(Locale.ROOT)) {
                             case "manage" -> {
-                                Team team = game.getTeam(args[3]);
+                                AbstractTeam team = game.getTeam(args[3]);
                                 if (team == null) {
                                     MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no team with that specified ID.");
                                     return true;
@@ -103,11 +104,11 @@ public class GameCommand extends RegisteredCommand {
                                         switch (args[4].toLowerCase(Locale.ROOT)) {
                                             case "add-player" -> {
                                                 team.addPlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully added to team '%s'.", player.getName(), team.getName());
+                                                msg = String.format("Player '%s' successfully added to team '%s'.", player.getName(), team.getId());
                                             }
                                             case "remove-player" -> {
                                                 team.removePlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully removed from team '%s'.", player.getName(), team.getName());
+                                                msg = String.format("Player '%s' successfully removed from team '%s'.", player.getName(), team.getId());
                                             }
                                         }
 
@@ -118,11 +119,6 @@ public class GameCommand extends RegisteredCommand {
                                 }
                             }
                             case "list" -> {
-                                if (game.getTeams().size() <= 0) {
-                                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There are no players on this team.");
-                                    return true;
-                                }
-
                                 MessageUtils.sendMessage(player, this.getTeamListInfo(game));
                             }
                         }
@@ -234,7 +230,7 @@ public class GameCommand extends RegisteredCommand {
                 .append(Component.newline())
                 .append(this.createBulletedComponent(this.createLocationComponent("Seeker Spawn", NamedTextColor.AQUA, game.getSeekerSpawn())))
                 .append(Component.newline())
-                .append(this.createBulletedComponent(this.createTeamListComponent("Manage Teams", NamedTextColor.RED, game)))
+                .append(this.createBulletedComponent(this.createTeamListComponent("Manage Teams", NamedTextColor.RED)))
                 .append(Component.newline())
                 .append(this.createBulletedComponent(this.createGameControlComponent(game)))
                 .append(Component.newline())
@@ -242,15 +238,15 @@ public class GameCommand extends RegisteredCommand {
     }
 
     @NotNull
-    private TextComponent getTeamInfo(Game game, Team team) {
+    private TextComponent getTeamInfo(Game game, AbstractTeam team) {
         // TODO: Fix this up, since players are fucked up idk just look at it
         TextComponent.Builder builder = Component.text()
                 .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
-                        .append(team.displayName())
+                        .append(team.getDisplayName())
                         .append(Component.text(":").color(NamedTextColor.WHITE))))
                 .append(Component.newline());
 
-        for (OfflinePlayer targetPlayer : team.getPlayers()) {
+        for (OfflinePlayer targetPlayer : team.getOfflinePlayers()) {
             String playerName = targetPlayer.getName();
             builder.append(this.createBulletedComponent(this.createPlayerInfoComponent(playerName, NamedTextColor.WHITE, game)))
                     .append(Component.newline());
@@ -264,8 +260,11 @@ public class GameCommand extends RegisteredCommand {
                 .append(this.createPrefixedComponent(Component.text("List of teams:").color(NamedTextColor.WHITE)))
                 .append(Component.newline());
 
-        for (Team team : game.getTeams()) {
-            builder.append(this.createBulletedComponent(this.createTeamInfoComponent(team, game)))
+        builder.append(this.createBulletedComponent(this.createTeamInfoComponent(game.getSeekingTeam())))
+                .append(Component.newline());
+
+        for (AbstractTeam team : game.getHidingTeams()) {
+            builder.append(this.createBulletedComponent(this.createTeamInfoComponent(team)))
                     .append(Component.newline());
         }
 
@@ -282,7 +281,7 @@ public class GameCommand extends RegisteredCommand {
                                 .build()))
                 .append(Component.newline())
                 .append(this.createLabelledBulletedComponent("Team",
-                        game.getTeam(player) != null ? this.createTeamInfoComponent(game.getTeam(player), game) : Component.text("NULL").color(NamedTextColor.WHITE)))
+                        game.getTeam(player) != null ? this.createTeamInfoComponent(game.getTeam(player)) : Component.text("NULL").color(NamedTextColor.WHITE)))
                 .append(Component.newline())
                 .append(this.createLabelledBulletedComponent("Tagged", game.isTagged(player) ? Component.text("✔").color(NamedTextColor.GREEN) : Component.text("✘").color(NamedTextColor.RED)))
                 .append(Component.newline())
@@ -307,11 +306,11 @@ public class GameCommand extends RegisteredCommand {
         return this.createCommandComponent(playerName, color, "Click to show player info", "/game manage display-player " + playerName);
     }
 
-    private TextComponent createTeamInfoComponent(Team team, Game game) {
-        return this.createCommandComponent((TextComponent) team.displayName().color(team.color()), "Click to show team info", "/game manage teams manage " + team.getName() + " info");
+    private TextComponent createTeamInfoComponent(AbstractTeam team) {
+        return this.createCommandComponent((TextComponent) team.getDisplayName().color(team.getColor()), "Click to show team info", "/game manage teams manage " + team.getId() + " info");
     }
 
-    private TextComponent createTeamListComponent(String label, TextColor color, Game game) {
+    private TextComponent createTeamListComponent(String label, TextColor color) {
         return this.createCommandComponent(label, color, "Click to list teams", "/game manage teams list");
     }
 

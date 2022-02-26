@@ -17,6 +17,7 @@
 - [ ] `/games` command (alias for `/games list`)
 - [ ] GameListener functionality
 
+# To Test
 
 # Future
 - [ ] Add lang functionality w/ placeholders for ALL string messages
