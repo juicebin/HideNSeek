@@ -1,7 +1,7 @@
-- rounds
-- point system??? prob just wins/losses
-
-# Today
+# TODO
+- [ ] GameCommand re-do
+- [ ] Fix chat prefix
+- [ ] Rounds
 - [ ] Get scoreboard working
   - Time
   - Team Name
@@ -10,14 +10,11 @@
   - @DotWavPresents
 - [ ] Make team management commands (adding and removing players from a team)
 
-# TODO
-- [ ] Make custom Team classes and stuff
-- [ ] Fix team colors
-- [ ] Fix chat prefix
-- [ ] `/games` command (alias for `/games list`)
-- [ ] GameListener functionality
-
 # To Test
+- The entire game structure
+- Individual GameListener functionality
+- Glowing
+- Team Management
 
 # Future
 - [ ] Add lang functionality w/ placeholders for ALL string messages
