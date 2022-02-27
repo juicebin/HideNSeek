@@ -1,7 +1,6 @@
 package juicebin.hidenseek;
 
-import juicebin.hidenseek.command.Commands;
-import juicebin.hidenseek.command.GameCommand;
+import juicebin.hidenseek.command.*;
 import juicebin.hidenseek.game.Game;
 import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
@@ -57,7 +56,7 @@ public final class HideNSeek extends JavaPlugin {
 
         // Register commands
         Commands commands = new Commands(
-                new GameCommand()
+                new MainCommand()
         );
         commands.register(this);
 
@@ -110,7 +109,7 @@ public final class HideNSeek extends JavaPlugin {
                 .style(Style.style(TextDecoration.BOLD))
                 .append(Component.text("[").color(NamedTextColor.DARK_GRAY))
                 .append(Component.text("H").color(NamedTextColor.BLUE))
-                .append(Component.text("&").color(NamedTextColor.GRAY))
+                .append(Component.text("&").color(NamedTextColor.WHITE))
                 .append(Component.text("S").color(NamedTextColor.YELLOW))
                 .append(Component.text("]").color(NamedTextColor.DARK_GRAY))
                 .build().append(Component.text().style(Style.empty()));

@@ -48,8 +48,6 @@ public abstract class RegisteredCommand implements TabExecutor {
         return true;
     }
 
-    public abstract LiteralCommandNode<?> getLiteralCommandNode();
-
     private boolean checkSubcommands(CommandSender sender, Command command, String commandName, String[] args) {
         List<Method> methodList = ClassUtils.getMethodsAnnotatedWith(this.getClass(), SubCommand.class)
                 .stream()

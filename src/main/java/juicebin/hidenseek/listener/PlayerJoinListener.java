@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scoreboard.Team;
 
 public class PlayerJoinListener extends RegisteredListener {
     private static final TextComponent TITLE = Component.text()
@@ -29,12 +30,23 @@ public class PlayerJoinListener extends RegisteredListener {
 
         scoreHelper.setTitle(TITLE);
 
-        Component displayName = team == null ? Component.text("N/A").color(NamedTextColor.GRAY) : team.getDisplayName();
-        scoreHelper.setSlot(2, "&fTeam: " + displayName); // TODO: team color
+//        Component displayName = team == null ? Component.text("N/A").color(NamedTextColor.GRAY) : team.getDisplayName();
+//        scoreHelper.setSlot(2, "&fTeam: " + displayName); // TODO: team color
+        scoreHelper.setSlot(6, "╔══════════════════");
+        scoreHelper.setSlot(2, "╚══════════════════");
+        scoreHelper.setSlot(1, "&7@DotWavPresents");
 
         // If the game is active and the player was on a team, set them to untagged
         if (game.isActive() && team instanceof HidingTeam) {
             ((HidingTeam) team).setPlayerActive(player, false);
+        }
+
+        // Add player to scoreboard team
+        if (team != null) {
+            Team scoreboardTeam = game.scoreboard.getTeam(team.getId());
+            if (scoreboardTeam != null && !scoreboardTeam.hasPlayer(player)) {
+                scoreboardTeam.addPlayer(player);
+            }
         }
     }
 
@@ -47,6 +59,14 @@ public class PlayerJoinListener extends RegisteredListener {
         // If the game is active and the player was on a team, remove them from the active player list
         if (game.isActive() && team instanceof HidingTeam) {
             ((HidingTeam) team).setPlayerActive(player, false);
+        }
+
+        // Remove player from scoreboard team
+        if (team != null) {
+            Team scoreboardTeam = game.scoreboard.getTeam(team.getId());
+            if (scoreboardTeam != null && scoreboardTeam.hasPlayer(player)) {
+                scoreboardTeam.removePlayer(player);
+            }
         }
     }
 

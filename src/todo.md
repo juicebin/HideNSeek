@@ -3,12 +3,16 @@
 - [ ] Fix chat prefix
 - [ ] Rounds
 - [ ] Get scoreboard working
-  - Time
-  - Team Name
-  - Teams Left
-  - Players Left
+  - TITLE
+  - ╔══════════════════
+  - ╟ Time: XX:XX
+  - ╟ Teams Left: X
+  - ╟ Players Left: X
+  - ╚══════════════════
   - @DotWavPresents
-- [ ] Make team management commands (adding and removing players from a team)
+- [ ] Make config reload command
+- [ ] Glowing
+- [ ] Make sure that by the time the game time is at 00:00, the world border isn't too small
 
 # To Test
 - The entire game structure

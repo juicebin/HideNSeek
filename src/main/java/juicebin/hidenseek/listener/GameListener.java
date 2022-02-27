@@ -9,6 +9,9 @@ import juicebin.hidenseek.game.SeekingTeam;
 import juicebin.hidenseek.game.AbstractTeam;
 import juicebin.hidenseek.util.MessageUtils;
 import juicebin.hidenseek.util.ScoreHelper;
+import juicebin.hidenseek.util.SoundUtils;
+import juicebin.hidenseek.util.TimeUtils;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -17,6 +20,7 @@ import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.inventivetalent.glow.GlowAPI;
 
 import java.util.ArrayList;
@@ -26,9 +30,9 @@ import java.util.logging.Level;
 import static juicebin.hidenseek.HideNSeek.log;
 
 public final class GameListener extends RegisteredListener {
-    private static final GlowAPI.Color TEAM_MEMBER_COLOR = GlowAPI.Color.GREEN;
-    private static final GlowAPI.Color NEUTRAL_GLOW_COLOR = GlowAPI.Color.BLUE;
-    private static final GlowAPI.Color ENEMY_GLOW_COLOR = GlowAPI.Color.RED;
+//    private static final GlowAPI.Color TEAM_MEMBER_COLOR = GlowAPI.Color.GREEN;
+//    private static final GlowAPI.Color NEUTRAL_GLOW_COLOR = GlowAPI.Color.BLUE;
+//    private static final GlowAPI.Color ENEMY_GLOW_COLOR = GlowAPI.Color.RED;
     private final HideNSeek plugin;
 
     public GameListener(HideNSeek instance) {
@@ -70,11 +74,26 @@ public final class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
 
-        // TP all players to lobby and give all players gamemode survival
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.teleport(game.getLobbyLocation());
-            player.setGameMode(GameMode.SURVIVAL);
-        }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                int returnToLobbyDelay = plugin.getConfigInstance().getReturnToLobbyDelay();
+                MessageUtils.broadcastSubtitle(Component.text("Returning to lobby in ")
+                        .color(NamedTextColor.RED)
+                        .append(TimeUtils.ticksToShortTime(returnToLobbyDelay, NamedTextColor.GOLD, NamedTextColor.RED)));
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        // TP all players to lobby and give all players gamemode survival
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            player.teleport(game.getLobbyLocation());
+                            player.setGameMode(GameMode.SURVIVAL);
+                        }
+                    }
+                }.runTaskLater(plugin, returnToLobbyDelay);
+            }
+        }.runTaskLater(plugin, 100);
 
         // TODO: Remove all glows
 
@@ -93,11 +112,13 @@ public final class GameListener extends RegisteredListener {
             // Create winning message
             TextComponent.Builder builder = Component.text();
 
-            if (winningTeams.size() == 1) {
+            int size = winningTeams.size();
+
+            if (size == 1) {
                 AbstractTeam winningTeam = winningTeams.get(0);
                 builder.append(winningTeam.getDisplayName());
             } else {
-                for (int i = 0; i < winningTeams.size(); i++) {
+                for (int i = 0; i < size; i++) {
                     AbstractTeam winningTeam = winningTeams.get(i);
 
                     builder.append(winningTeam.getDisplayName());
@@ -105,21 +126,39 @@ public final class GameListener extends RegisteredListener {
                     // INDEX  : 0, 1, 2, 3 and 4
                     // LENGTH : 1  2  3  4     5
 
-                    if (i == winningTeams.size() - 1) {
+                    if (i == 1) {
+                        // Team 1 WINS!
+
+                    } else if (i == 2) {
+                        // Team 2 and Team 3 WIN!
+                        builder.append();
+                    } else if (i >= 3) {
+                        // Team 2, Team 3, and Team 4 WIN!
+                    }
+
+                    if (i == size) {
                         builder.append(Component.text(" and ").color(NamedTextColor.WHITE));
-                    } else if (i != winningTeams.size() - 2) {
+                    } else {
                         builder.append(Component.text(", ").color(NamedTextColor.WHITE));
                     }
                 }
             }
 
+            if (size == 1) {
+
+            } else if (size == 2) {
+
+            } else {
+
+            }
+
             TextComponent winningMessage = builder.build()
-                    .append(Component.space())
                     .append(Component.text("WINS!").color(NamedTextColor.WHITE));
 
             // Send message who wins
             // TODO: Also send that the game has ended
-            MessageUtils.broadcast(winningMessage);
+            MessageUtils.broadcastSubtitle(winningMessage);
+            SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, Sound.Source.MASTER, 0.5f, 1.0f));
 
             // Change scoreboard to show who wins
             for (Player player : event.getGame().getOnlinePlayers()) {
@@ -168,7 +207,7 @@ public final class GameListener extends RegisteredListener {
 
         // Decrease the world border size from A to B over X amount of time
         Config config = plugin.getConfigInstance();
-        game.setWorldBorderSize(config.getBorderShrinkSize(), config.getBorderShrinkTime());
+        game.setWorldBorderSize(game.getWorld().getWorldBorder().getSize() - config.getBorderShrinkSize(), config.getBorderShrinkTime());
     }
 
     @EventHandler

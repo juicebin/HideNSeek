@@ -7,7 +7,7 @@ import juicebin.hidenseek.event.*;
 import juicebin.hidenseek.util.MessageUtils;
 import juicebin.hidenseek.util.ScoreHelper;
 import juicebin.hidenseek.util.SoundUtils;
-import juicebin.hidenseek.util.TickUtils;
+import juicebin.hidenseek.util.TimeUtils;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -37,15 +37,14 @@ public final class Game implements Listener {
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
-    private final Scoreboard scoreboard;
     private final Config config;
     private final int matchTime;
     private boolean active;
     private boolean seekersReleased;
     private boolean borderStartedShrink;
     private boolean hidersStartGlow;
-    private int teamCount;
     private int ticks;
+    public final Scoreboard scoreboard;
 
     public Game(HideNSeek instance, World world, Location lobbyLocation, Location hiderSpawn, Location seekerSpawn) {
         this.plugin = instance;
@@ -70,7 +69,7 @@ public final class Game implements Listener {
             HidingTeam team = new HidingTeam(key, displayName, color);
             for (String playerName : players.getKeys(false)) {
                 UUID uuid = UUID.fromString(players.getString(playerName));
-                team.addPlayer(uuid);
+                team.addPlayer(Bukkit.getOfflinePlayer(uuid));
             }
 
             hidingTeamMap.put(key, team);
@@ -85,32 +84,34 @@ public final class Game implements Listener {
         SeekingTeam team = new SeekingTeam("seekers", displayName, color);
         for (String playerName : players.getKeys(false)) {
             UUID uuid = UUID.fromString(players.getString(playerName));
-            team.addPlayer(uuid);
+            team.addPlayer(Bukkit.getOfflinePlayer(uuid));
         }
 
         this.seekingTeam = team;
 
         // Add scoreboard teams (solely for nameplates)
+        this.scoreboard.registerNewTeam(seekingTeam.getId());
+
         for (HidingTeam hidingTeam : hidingTeamMap.values()) {
-            Team scoreboardTeam = this.scoreboard.registerNewTeam(hidingTeam.getId());
-            hidingTeam.getOfflinePlayers().forEach(scoreboardTeam::addPlayer);
+            this.scoreboard.registerNewTeam(hidingTeam.getId());
         }
-        Team scoreboardTeam = this.scoreboard.registerNewTeam(seekingTeam.getId());
-        seekingTeam.getOfflinePlayers().forEach(scoreboardTeam::addPlayer);
     }
 
     public void start() {
         ticks = config.getMatchTime();
         active = true;
+        seekersReleased = false;
+        borderStartedShrink = false;
+        hidersStartGlow = false;
 
         this.initWorldBorder();
 
-        // Untag players and set all teams to active
+        // Set online players to active and their team accordingly
         for (HidingTeam team : this.getHidingTeams()) {
-            for (OfflinePlayer player : team.getOfflinePlayers()) {
-                team.setPlayerActive(player, false);
+            for (OfflinePlayer player : team.getPlayers()) {
+                team.setPlayerActive(player, player.isOnline());
             }
-            team.setActive(true);
+            team.setActive(team.getPlayers().size() > 1);
         }
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -119,6 +120,13 @@ public final class Game implements Listener {
         // Hide nameplates for other teams
         for (Team team : this.scoreboard.getTeams()) {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
+        }
+
+        // Update scoreboard
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
+            scoreHelper.setSlot(4, "&f╟ &cTeams left: &r" + this.getActiveHidingTeams().size());
+            scoreHelper.setSlot(3, "&f╟ &cPlayers Left: &r" + this.getActiveHiders().size());
         }
 
         log(Level.INFO, "Starting registered game...");
@@ -151,10 +159,10 @@ public final class Game implements Listener {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
-            scoreHelper.setSlot(1, "&cTime Left: &r" + TickUtils.convertTicksToTime(ticks));
+            scoreHelper.setSlot(5, "&f╟ &cTime Left: &r" + TimeUtils.ticksToString(ticks));
         }
 
-        if (!seekersReleased && ticks <= config.getHideTime()) {
+        if (!seekersReleased && ticks <= (config.getMatchTime() - config.getHideTime())) {
             seekersReleased = true;
 
             SeekersReleasedEvent event = new SeekersReleasedEvent(this);
@@ -213,27 +221,16 @@ public final class Game implements Listener {
             }
         }
 
-        if (ticks <= 0 || this.getActiveHiders().size() <= 0) {
+        if (ticks <= 0 /*|| this.getActiveHiders().size() <= 0*/) {
             this.stop(false);
         }
     }
 
     private void sendWarningAlert(String text, int timeLeft) {
-        int seconds = timeLeft / 20;
-        int minutes = seconds / 60;
-
-        String time;
-
-        if (minutes > 1) {
-            time = minutes + " minutes";
-        } else {
-            time = seconds + " seconds";
-        }
-
         MessageUtils.broadcast(Component.text()
                 .append(Component.text(text).color(NamedTextColor.RED))
                 .append(Component.space())
-                .append(Component.text(time).color(NamedTextColor.YELLOW))
+                .append(TimeUtils.ticksToShortTime(timeLeft, NamedTextColor.YELLOW, NamedTextColor.RED))
                 .build());
 
         SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.BLOCK_DISPENSER_DISPENSE, Sound.Source.MASTER, 0.5f, 1.0f));
@@ -259,7 +256,7 @@ public final class Game implements Listener {
         return world;
     }
 
-    public boolean isTagged(Player player) {
+    public boolean isTagged(OfflinePlayer player) {
         return taggedPlayers.contains(player.getUniqueId());
     }
 
@@ -308,7 +305,7 @@ public final class Game implements Listener {
         return this.getHidingTeam(uuid) != null ? this.getHidingTeam(uuid) : null;
     }
 
-    public AbstractTeam getTeam(Player player) {
+    public AbstractTeam getTeam(OfflinePlayer player) {
         return this.getTeam(player.getUniqueId());
     }
 
@@ -376,12 +373,10 @@ public final class Game implements Listener {
                 .toList();
     }
 
-    public List<UUID> getActiveHiders() {
-        List<UUID> untaggedHiders = new ArrayList<>();
+    public List<OfflinePlayer> getActiveHiders() {
+        List<OfflinePlayer> untaggedHiders = new ArrayList<>();
         for (HidingTeam hidingTeam : this.getHidingTeams()) {
-            untaggedHiders.addAll(hidingTeam.getUuidList().stream()
-                    .filter(u -> !hidingTeam.getInactivePlayers().contains(u))
-                    .toList());
+            untaggedHiders.addAll(hidingTeam.getActivePlayers());
         }
 
         return untaggedHiders;

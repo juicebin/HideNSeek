@@ -1,339 +1,138 @@
 package juicebin.hidenseek.command;
 
-import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import juicebin.hidenseek.HideNSeek;
-import juicebin.hidenseek.game.AbstractTeam;
 import juicebin.hidenseek.game.Game;
+import juicebin.hidenseek.util.ComponentUtils;
 import juicebin.hidenseek.util.MessageLevel;
 import juicebin.hidenseek.util.MessageUtils;
+import juicebin.hidenseek.util.SoundUtils;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.Locale;
 
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
-import static com.mojang.brigadier.builder.RequiredArgumentBuilder.argument;
+public class GameCommand implements CommandExecutor {
+    private final HideNSeek plugin;
 
-public class GameCommand extends RegisteredCommand {
-    @Override
-    protected String getName() {
-        return "game";
+    public GameCommand(HideNSeek instance) {
+        this.plugin = instance;
     }
 
     @Override
-    protected boolean run(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            MessageUtils.sendMessage(sender, MessageLevel.ERROR, "You cannot execute this command as a non-player");
-            return true;
-        }
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) return false;
 
         Game game = plugin.getGame();
 
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "start" -> {
+                if (args.length != 1) return false;
+
+                if (game.isActive()) {
+                    MessageUtils.sendMessage(sender, MessageLevel.ERROR, "Game is already started.");
+                    return true;
+                }
+
+                // Countdown
+                int length = 10;
+                new BukkitRunnable() {
+                    int i = length;
+
+                    @Override
+                    public void run() {
+                        MessageUtils.broadcast("&cGame starting in &e" + i + "&c...");
+                        SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.ENTITY_ARROW_HIT_PLAYER, Sound.Source.MASTER, 0.5f, 1.0f));
+
+                        if (--i <= 0) {
+                            game.start();
+                            this.cancel();
+                        }
+                    }
+                }.runTaskTimer(plugin, 0, 20);
+                return true;
+            }
+            case "stop" -> {
+                if (args.length != 1) return false;
+
+                if (!game.isActive()) {
+                    MessageUtils.sendMessage(sender, MessageLevel.ERROR, "Game hasn't been started.");
+                    return true;
+                }
+
+                // Countdown
+                int length = 10;
+                new BukkitRunnable() {
+                    int i = length;
+
+                    @Override
+                    public void run() {
+                        MessageUtils.broadcast("&cGame force stopping in &6" + i + "&c...");
+                        SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.ENTITY_ARROW_HIT_PLAYER, Sound.Source.MASTER, 0.5f, 1.0f));
+
+                        if (--i <= 0) {
+                            game.stop(true);
+                            this.cancel();
+                        }
+                    }
+                }.runTaskTimer(plugin, 0, 20);
+                return true;
+            }
             case "view" -> {
                 if (args.length != 1) return false;
 
-                MessageUtils.sendMessage(player, this.getGameInfo(game));
-            }
-            case "start", "stop" -> {
-                if (args.length != 1) return false;
-
-                switch (args[0].toLowerCase(Locale.ROOT)) {
-                    case "start" -> {
-                        // TODO: Countdown
-
-                        if (game.isActive()) {
-                            MessageUtils.sendMessage(player, MessageLevel.ERROR, "Game is already started.");
-                            return true;
-                        }
-
-                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Starting game...");
-                        game.start();
-                    }
-                    case "stop" -> {
-                        if (!game.isActive()) {
-                            MessageUtils.sendMessage(player, MessageLevel.ERROR, "Game is already stopped.");
-                            return true;
-                        }
-
-                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, "Stopping game...");
-                        game.stop(true);
-                    }
-                }
-            }
-            case "manage" -> {
-                switch (args[1].toLowerCase(Locale.ROOT)) {
-                    case "teams" -> {
-                        // /game manage <name> teams manage <team> add-player <player>
-                        switch (args[2].toLowerCase(Locale.ROOT)) {
-                            case "manage" -> {
-                                AbstractTeam team = game.getTeam(args[3]);
-                                if (team == null) {
-                                    MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no team with that specified ID.");
-                                    return true;
-                                }
-
-                                switch (args[4].toLowerCase(Locale.ROOT)) {
-                                    case "add-player", "remove-player" -> {
-                                        Player targetPlayer = Bukkit.getPlayer(args[5]);
-
-                                        if (targetPlayer == null) {
-                                            MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no player online with that name.");
-                                            return true;
-                                        }
-
-                                        String msg = "";
-
-                                        switch (args[4].toLowerCase(Locale.ROOT)) {
-                                            case "add-player" -> {
-                                                team.addPlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully added to team '%s'.", player.getName(), team.getId());
-                                            }
-                                            case "remove-player" -> {
-                                                team.removePlayer(targetPlayer);
-                                                msg = String.format("Player '%s' successfully removed from team '%s'.", player.getName(), team.getId());
-                                            }
-                                        }
-
-                                        MessageUtils.sendMessage(player, MessageLevel.SUCCESS, msg);
-                                        MessageUtils.sendMessage(player, MessageLevel.ERROR, "WARNING: This is an instance-based outcome. The teams will reset when the server or plugin is reloaded.");
-                                    }
-                                    case "info" -> MessageUtils.sendMessage(player, this.getTeamInfo(game, team));
-                                }
-                            }
-                            case "list" -> {
-                                MessageUtils.sendMessage(player, this.getTeamListInfo(game));
-                            }
-                        }
-                    }
-                    case "display-player" -> {
-                        Player targetPlayer = Bukkit.getPlayer(args[3]);
-
-                        if (targetPlayer == null) {
-                            MessageUtils.sendMessage(player, MessageLevel.ERROR, "There is no player online with that name.");
-                            return true;
-                        }
-
-                        MessageUtils.sendMessage(player, this.getPlayerInfo(game, player));
-                    }
-                }
+                MessageUtils.sendMessage(sender, this.createGameInfoComponent(game));
+                return true;
             }
         }
-        return true;
+
+        return false;
     }
 
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) return List.of();
-
-        Location location = player.getLocation();
-
-        switch (args[0].toLowerCase(Locale.ROOT)) {
-            case "create" -> {
-                return switch (args.length) {
-                    case 2 -> List.of("<name>");
-                    case 3, 6 -> List.of(String.valueOf(location.getBlockX()));
-                    case 4, 7 -> List.of(String.valueOf(location.getBlockY()));
-                    case 5, 8 -> List.of(String.valueOf(location.getBlockZ()));
-                    default -> List.of();
-                };
-            }
-            case "start", "stop", "view" -> {
-                return List.of();
-            }
-            case "manage" -> {
-                if (args.length == 2) {
-                    return List.of("teams", "display-player");
-                } else if (args.length == 3) {
-                    if (args[1].equalsIgnoreCase("teams")) {
-                        // /game manage teams
-                        return List.of("manage");
-                    } else {
-                        return List.of();
-                    }
-                } else if (args.length == 4) {
-                    if (args[1].equalsIgnoreCase("teams") && args[2].equalsIgnoreCase("manage")) {
-                        // /game manage teams manage
-                        return List.of("add-player", "remove-player", "info");
-                    } else {
-                        return List.of();
-                    }
-                } else {
-                    return List.of();
-                }
-            }
-            default -> {
-                if (args.length == 1)  {
-                    return List.of("create", "start", "stop", "view", "list");
-                } else {
-                    return List.of();
-                }
-            }
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 1) {
+            return List.of("start", "stop", "view");
         }
+        return List.of();
     }
 
-    @Override
-    public LiteralCommandNode<?> getLiteralCommandNode() {
-        DoubleArgumentType xPosArg = DoubleArgumentType.doubleArg();
-        DoubleArgumentType yPosArg = DoubleArgumentType.doubleArg();
-        DoubleArgumentType zPosArg = DoubleArgumentType.doubleArg();
-
-        xPosArg.getExamples().add("");
-
-        LiteralArgumentBuilder<?> argumentBuilder = literal("game")
-                .then(literal("create")
-                        .then(argument("name", StringArgumentType.word())
-                        .then(argument("hider-x", xPosArg)
-                        .then(argument("hider-y", yPosArg)
-                        .then(argument("hider-z", yPosArg)
-                        .then(argument("seeker-z", zPosArg)
-                        .then(argument("seeker-x", xPosArg)
-                        .then(argument("seeker-y", yPosArg)
-                        .then(argument("seeker-z", zPosArg)
-                        ))))))))
-                ).then(literal("start")
-                        .then(argument("name", StringArgumentType.word()))
-                ).then(literal("stop")
-                        .then(argument("name", StringArgumentType.word()))
-                ).then(literal("view")
-                        .then(argument("name", StringArgumentType.word()))
-                ).then(literal("list"));
-
-        return argumentBuilder.build();
-    }
-
-    private TextComponent getGameInfo(Game game) {
+    private TextComponent createGameControllerComponent() {
         return Component.text()
-                .append(this.createPrefixedComponent(
-                        Component.text()
-                                .append(Component.text("Game Info:").color(NamedTextColor.WHITE))
-                                .build()))
-                .append(Component.newline())
-                .append(this.createBulletedComponent(this.createLocationComponent("Hider Spawn", NamedTextColor.AQUA, game.getHiderSpawn())))
-                .append(Component.newline())
-                .append(this.createBulletedComponent(this.createLocationComponent("Seeker Spawn", NamedTextColor.AQUA, game.getSeekerSpawn())))
-                .append(Component.newline())
-                .append(this.createBulletedComponent(this.createTeamListComponent("Manage Teams", NamedTextColor.RED)))
-                .append(Component.newline())
-                .append(this.createBulletedComponent(this.createGameControlComponent(game)))
-                .append(Component.newline())
+                .append(Component.text("[").color(NamedTextColor.WHITE))
+                .append(ComponentUtils.createCommandComponent("START", NamedTextColor.GREEN, "Click to start game", "/hs game start"))
+                .append(Component.text("]").color(NamedTextColor.WHITE))
+                .append(Component.space())
+                .append(Component.text("|").color(NamedTextColor.WHITE))
+                .append(Component.space())
+                .append(Component.text("[").color(NamedTextColor.WHITE))
+                .append(ComponentUtils.createCommandComponent("STOP", NamedTextColor.RED, "Click to stop game", "/hs game stop"))
+                .append(Component.text("]").color(NamedTextColor.WHITE))
                 .build();
     }
 
-    @NotNull
-    private TextComponent getTeamInfo(Game game, AbstractTeam team) {
-        // TODO: Fix this up, since players are fucked up idk just look at it
-        TextComponent.Builder builder = Component.text()
-                .append(this.createPrefixedComponent(Component.text("List of players from team ").color(NamedTextColor.WHITE)
-                        .append(team.getDisplayName())
-                        .append(Component.text(":").color(NamedTextColor.WHITE))))
-                .append(Component.newline());
+    private TextComponent createGameInfoComponent(Game game) {
+        //      [H&S] Game Controller: [START] | [STOP]
+        //      [H&S] - TP to Hider Spawn
+        //      [H&S] - TP to Seeker Spawn
+        //      [H&S] - Manage Teams
 
-        for (OfflinePlayer targetPlayer : team.getOfflinePlayers()) {
-            String playerName = targetPlayer.getName();
-            builder.append(this.createBulletedComponent(this.createPlayerInfoComponent(playerName, NamedTextColor.WHITE, game)))
-                    .append(Component.newline());
-        }
-
-        return builder.build();
-    }
-
-    private TextComponent getTeamListInfo(Game game) {
-        TextComponent.Builder builder = Component.text()
-                .append(this.createPrefixedComponent(Component.text("List of teams:").color(NamedTextColor.WHITE)))
-                .append(Component.newline());
-
-        builder.append(this.createBulletedComponent(this.createTeamInfoComponent(game.getSeekingTeam())))
-                .append(Component.newline());
-
-        for (AbstractTeam team : game.getHidingTeams()) {
-            builder.append(this.createBulletedComponent(this.createTeamInfoComponent(team)))
-                    .append(Component.newline());
-        }
-
-        return builder.build();
-    }
-
-    private TextComponent getPlayerInfo(Game game, Player player) {
         return Component.text()
-                .append(this.createPrefixedComponent(
-                        Component.text()
-                                .append(Component.text("Player Info:").color(NamedTextColor.WHITE))
-                                .append(Component.space())
-                                .append(Component.text("\"" + player.getName() + "\"")).color(NamedTextColor.YELLOW)
-                                .build()))
+                .append(ComponentUtils.createPrefixedComponent(Component.text("Game Controller: ").color(NamedTextColor.WHITE)))
+                .append(this.createGameControllerComponent())
                 .append(Component.newline())
-                .append(this.createLabelledBulletedComponent("Team",
-                        game.getTeam(player) != null ? this.createTeamInfoComponent(game.getTeam(player)) : Component.text("NULL").color(NamedTextColor.WHITE)))
+                .append(ComponentUtils.createBulletedComponent(ComponentUtils.createLocationComponent("TP to Hider Spawn", NamedTextColor.AQUA, game.getHiderSpawn())))
                 .append(Component.newline())
-                .append(this.createLabelledBulletedComponent("Tagged", game.isTagged(player) ? Component.text("✔").color(NamedTextColor.GREEN) : Component.text("✘").color(NamedTextColor.RED)))
+                .append(ComponentUtils.createBulletedComponent(ComponentUtils.createLocationComponent("TP to Seeker Spawn", NamedTextColor.AQUA, game.getSeekerSpawn())))
                 .append(Component.newline())
-                .append(this.createBulletedComponent(this.createLocationComponent("Location", NamedTextColor.AQUA, player.getLocation())))
+                .append(ComponentUtils.createBulletedComponent(ComponentUtils.createCommandComponent("View Teams", NamedTextColor.RED, "Click to manage teams", "/hs team list")))
                 .append(Component.newline())
+                .append(ComponentUtils.createBulletedComponent(ComponentUtils.createCommandComponent("View Players", NamedTextColor.DARK_GREEN, "Click to manage teams", "/hs team view-players")))
                 .build();
-    }
-
-    private TextComponent createCommandComponent(String label, TextColor color, String hoverLabel, String command) {
-        return Component.text(label).color(color)
-                .hoverEvent(HoverEvent.showText(Component.text(hoverLabel).color(NamedTextColor.AQUA)))
-                .clickEvent(ClickEvent.runCommand(command));
-    }
-
-    private TextComponent createCommandComponent(TextComponent component, String hoverLabel, String command) {
-        return component
-                .hoverEvent(HoverEvent.showText(Component.text(hoverLabel).color(NamedTextColor.AQUA)))
-                .clickEvent(ClickEvent.runCommand(command));
-    }
-
-    private TextComponent createPlayerInfoComponent(String playerName, TextColor color, Game game) {
-        return this.createCommandComponent(playerName, color, "Click to show player info", "/game manage display-player " + playerName);
-    }
-
-    private TextComponent createTeamInfoComponent(AbstractTeam team) {
-        return this.createCommandComponent((TextComponent) team.getDisplayName().color(team.getColor()), "Click to show team info", "/game manage teams manage " + team.getId() + " info");
-    }
-
-    private TextComponent createTeamListComponent(String label, TextColor color) {
-        return this.createCommandComponent(label, color, "Click to list teams", "/game manage teams list");
-    }
-
-    private TextComponent createLocationComponent(String label, TextColor color, Location loc) {
-        return this.createCommandComponent(label, color, "Click to teleport", "/tp @s " + loc.getX() + " " + loc.getY() + " " + loc.getZ());
-    }
-
-    private TextComponent createPrefixedComponent(TextComponent component) {
-        return HideNSeek.getPrefix().append(Component.space()).append(component);
-    }
-
-    private TextComponent createBulletedComponent(TextComponent component) {
-        return this.createPrefixedComponent(Component.text("> ").color(NamedTextColor.GRAY).append(component));
-    }
-
-    private TextComponent createLabelledBulletedComponent(String label, TextComponent component) {
-        return this.createBulletedComponent(Component.text(label + ": ").color(NamedTextColor.AQUA).append(component));
-    }
-
-    private TextComponent createGameControlComponent(Game game) {
-        TextComponent stopComponent = this.createCommandComponent("Stop Game", NamedTextColor.RED, "Click to stop", "/game stop");
-        TextComponent startComponent = this.createCommandComponent("Start Game", NamedTextColor.GREEN, "Click to start", "/game start");
-
-        return game.isActive() ? stopComponent : startComponent;
     }
 }

@@ -12,6 +12,7 @@ public final class Config {
     private final FileConfiguration config;
     private final int hideTime;
     private final int matchTime;
+    private final int returnToLobbyDelay;
     private final int borderShrinkStartTime;
     private final int borderShrinkInterval;
     private final double borderShrinkSize;
@@ -40,6 +41,7 @@ public final class Config {
 
         this.hideTime = config.getInt("hide_time");
         this.matchTime = config.getInt("match_time");
+        this.returnToLobbyDelay = config.getInt("return_to_lobby_delay");
         this.glowStartTime = config.getInt("glow.start_time");
         this.glowInterval = config.getInt("glow.interval");
         this.glowWarningTimes = config.getIntegerList("glow.warning_times");
@@ -159,5 +161,9 @@ public final class Config {
 
     public List<Integer> getGlowWarningTimes() {
         return glowWarningTimes;
+    }
+
+    public int getReturnToLobbyDelay() {
+        return returnToLobbyDelay;
     }
 }

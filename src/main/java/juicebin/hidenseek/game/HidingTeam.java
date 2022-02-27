@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class HidingTeam extends AbstractTeam {
-    private final List<UUID> inactivePlayerList = new ArrayList<>();
+    private final List<OfflinePlayer> inactivePlayerList = new ArrayList<>();
     private boolean active;
 
     public HidingTeam(String id, String displayName, TextColor color) {
@@ -17,24 +17,24 @@ public class HidingTeam extends AbstractTeam {
         this.active = false;
     }
 
-    public List<UUID> getInactivePlayers() {
+    public List<OfflinePlayer> getInactivePlayers() {
         return inactivePlayerList;
     }
 
-    public void setPlayerActive(Player player, boolean active) {
-        if (active) {
-            inactivePlayerList.add(player.getUniqueId());
-        } else {
-            inactivePlayerList.remove(player.getUniqueId());
-        }
+    public List<OfflinePlayer> getActivePlayers() {
+        return this.playerList.stream().filter(p -> !inactivePlayerList.contains(p)).toList();
     }
 
     public void setPlayerActive(OfflinePlayer player, boolean active) {
-        if (active) {
-            inactivePlayerList.add(player.getUniqueId());
+        if (!active) {
+            inactivePlayerList.add(player);
         } else {
-            inactivePlayerList.remove(player.getUniqueId());
+            inactivePlayerList.remove(player);
         }
+    }
+
+    public boolean getPlayerActive(OfflinePlayer player) {
+        return !inactivePlayerList.contains(player);
     }
 
     public void setActive(boolean active) {

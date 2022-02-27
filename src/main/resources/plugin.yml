@@ -5,22 +5,13 @@ api-version: 1.18
 author: juicebin
 prefix: HideNSeek
 permissions:
-  hidenseek.commands.game:
+  hidenseek.command:
     default: op
-    description: Gives permission to the command /game
-  hidenseek.commands.team:
-    default: op
-    description: Gives permission to the command /team
-  hidenseek.commands.*:
-    default: op
-    description: Gives permission to all commands from HideNSeek
-    children:
-      hidenseek.commands.game: true
-      hidenseek.commands.team: true
+    description: Gives permission to main command from HideNSeek
 commands:
-  game:
-    permission: hidenseek.commands.game
+  hideandseek:
+    permission: hidenseek.command
     usage: /<command>
-  team:
-    permission: hidenseek.commands.team
-    usage: /<command>
+    aliases:
+      - hidenseek
+      - hs

@@ -1,6 +1,7 @@
 package juicebin.hidenseek.game;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -12,10 +13,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 public abstract class AbstractTeam {
-    private final List<UUID> uuidList = new ArrayList<>();
-    private final TextColor color;
-    private final String id;
-    private final Component displayName;
+    protected final List<OfflinePlayer> playerList = new ArrayList<>();
+    protected final TextColor color;
+    protected final String id;
+    protected final TextComponent displayName;
 
     public AbstractTeam(String id, String displayName, TextColor color) {
         this.id = id;
@@ -23,35 +24,27 @@ public abstract class AbstractTeam {
         this.color = color;
     }
 
-    public void addPlayer(UUID uuid) {
-        uuidList.add(uuid);
-    }
-
-    public void addPlayer(Player player) {
-        uuidList.add(player.getUniqueId());
+    public void addPlayer(OfflinePlayer player) {
+        playerList.add(player);
     }
 
     public void removePlayer(Player player) {
-        uuidList.remove(player.getUniqueId());
-    }
-
-    public List<OfflinePlayer> getOfflinePlayers() {
-        return uuidList.stream().map(Bukkit::getOfflinePlayer).toList();
+        playerList.remove(player.getUniqueId());
     }
 
     public List<Player> getOnlinePlayers() {
-        return uuidList.stream()
-                .map(Bukkit::getPlayer)
-                .filter(Objects::nonNull)
+        return playerList.stream()
+                .filter(OfflinePlayer::isOnline)
+                .map(OfflinePlayer::getPlayer)
                 .toList();
     }
 
-    public List<UUID> getUuidList() {
-        return uuidList;
+    public List<OfflinePlayer> getPlayers() {
+        return playerList;
     }
 
     public boolean hasPlayer(UUID uuid) {
-        return uuidList.contains(uuid);
+        return playerList.contains(uuid);
     }
 
     public TextColor getColor() {
@@ -62,7 +55,7 @@ public abstract class AbstractTeam {
         return id;
     }
 
-    public Component getDisplayName() {
+    public TextComponent getDisplayName() {
         return displayName;
     }
 }
