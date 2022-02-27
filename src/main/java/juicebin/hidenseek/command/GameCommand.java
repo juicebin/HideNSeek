@@ -47,7 +47,7 @@ public class GameCommand implements CommandExecutor {
 
                     @Override
                     public void run() {
-                        MessageUtils.broadcast("&cGame starting in &e" + i + "&c...");
+                        MessageUtils.broadcast("&cGame starting in &e" + i);
                         SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.ENTITY_ARROW_HIT_PLAYER, Sound.Source.MASTER, 0.5f, 1.0f));
 
                         if (--i <= 0) {

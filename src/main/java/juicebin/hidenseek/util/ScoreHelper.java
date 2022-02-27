@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -74,6 +75,16 @@ public class ScoreHelper {
         String suf = getFirstSplit(ChatColor.getLastColors(pre) + getSecondSplit(text));
         team.prefix(Component.text(pre));
         team.suffix(Component.text(suf));
+    }
+
+    public void setSlot(int slot, TextComponent component) {
+        Team team = scoreboard.getTeam("SLOT_" + slot);
+        String entry = genEntry(slot);
+        if (!scoreboard.getEntries().contains(entry)) {
+            sidebar.getScore(entry).setScore(slot);
+        }
+
+        team.displayName(component);
     }
 
     public void removeSlot(int slot) {

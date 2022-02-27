@@ -17,6 +17,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -111,49 +112,39 @@ public final class GameListener extends RegisteredListener {
 
             // Create winning message
             TextComponent.Builder builder = Component.text();
-
+            NamedTextColor defaultColor = NamedTextColor.WHITE;
             int size = winningTeams.size();
 
             if (size == 1) {
-                AbstractTeam winningTeam = winningTeams.get(0);
-                builder.append(winningTeam.getDisplayName());
+                AbstractTeam team = winningTeams.get(0);
+                builder.append(Component.text("wins!").color(defaultColor));
+            } else if (size == 2) {
+                AbstractTeam team1 = winningTeams.get(0);
+                AbstractTeam team2 = winningTeams.get(1);
+
+                builder.append(team1.getDisplayName())
+                        .append(Component.space())
+                        .append(Component.text("and").color(defaultColor))
+                        .append(Component.space())
+                        .append(team2.getDisplayName());
+
+                builder.append(Component.text("win!").color(defaultColor));
             } else {
-                for (int i = 0; i < size; i++) {
-                    AbstractTeam winningTeam = winningTeams.get(i);
+                for (int i = 0; i < winningTeams.size(); i++) {
+                    AbstractTeam team = winningTeams.get(i);
 
-                    builder.append(winningTeam.getDisplayName());
+                    builder.append(team.getDisplayName());
 
-                    // INDEX  : 0, 1, 2, 3 and 4
-                    // LENGTH : 1  2  3  4     5
-
-                    if (i == 1) {
-                        // Team 1 WINS!
-
-                    } else if (i == 2) {
-                        // Team 2 and Team 3 WIN!
-                        builder.append();
-                    } else if (i >= 3) {
-                        // Team 2, Team 3, and Team 4 WIN!
-                    }
-
-                    if (i == size) {
-                        builder.append(Component.text(" and ").color(NamedTextColor.WHITE));
-                    } else {
-                        builder.append(Component.text(", ").color(NamedTextColor.WHITE));
+                    if (i == winningTeams.size() - 2) {
+                        builder.append(Component.text(" and ").color(defaultColor));
+                    } else if (i != winningTeams.size() - 1) {
+                        builder.append(Component.text(", ").color(defaultColor));
                     }
                 }
+                builder.append(Component.text("win!").color(defaultColor));
             }
 
-            if (size == 1) {
-
-            } else if (size == 2) {
-
-            } else {
-
-            }
-
-            TextComponent winningMessage = builder.build()
-                    .append(Component.text("WINS!").color(NamedTextColor.WHITE));
+            TextComponent winningMessage = builder.build();
 
             // Send message who wins
             // TODO: Also send that the game has ended
@@ -164,6 +155,28 @@ public final class GameListener extends RegisteredListener {
             for (Player player : event.getGame().getOnlinePlayers()) {
                 ScoreHelper scoreHelper = ScoreHelper.getByPlayer(player);
                 // TODO: Change scoreboard to show who won
+
+                // 8     ╔══════════════════
+                // 7     ╟ Winning Team(s):
+                // 6     ╟ - Team 1
+                // 5     ╟ - Team 2
+                // 4     ╟ - Team 3
+                // 3     ╟ - Team 4
+                // 2     ╚══════════════════
+                // 1      @DotWavPresents
+
+                scoreHelper.setSlot(2, "╚══════════════════");
+                scoreHelper.setSlot(1, "&7@DotWavPresents");
+
+                int slot = 3;
+
+                for (AbstractTeam team : winningTeams) {
+                    scoreHelper.setSlot(slot, Component.text("╟ - ").color(NamedTextColor.WHITE).append(team.getDisplayName()));
+                    slot++;
+                }
+
+                scoreHelper.setSlot(slot, "╟ &eWinning Team(s)&f:");
+                scoreHelper.setSlot(slot + 1, "╔══════════════════");
             }
         } else {
             // TODO: Send that the game was forcefully stopped
@@ -199,11 +212,12 @@ public final class GameListener extends RegisteredListener {
 
         Game game = event.getGame();
 
+        // Send warning message
         if (event.isFirstEvent()) {
-            MessageUtils.sendWarningTitle("THE BORDER IS STARTING TO SHRINK");
+            MessageUtils.broadcastSubtitle(Component.text("THE BORDER IS STARTING TO SHRINK").color(NamedTextColor.RED));
+        } else {
+            MessageUtils.broadcastActionbar(Component.text("The border is shrinking!").color(NamedTextColor.RED));
         }
-
-        // TODO: Send warning message
 
         // Decrease the world border size from A to B over X amount of time
         Config config = plugin.getConfigInstance();
@@ -219,12 +233,24 @@ public final class GameListener extends RegisteredListener {
         Game game = event.getGame();
 
         // Send tag message
+        MessageUtils.broadcast(Component.text()
+                .append(Component.text(seeker.getName()).color(game.getTeam(seeker).getColor()))
+                .append(Component.space())
+                .append(Component.text("tagged").color(NamedTextColor.YELLOW))
+                .append(Component.space())
+                .append(Component.text(hider.getName()).color(game.getTeam(hider).getColor()))
+                .build());
+
+        // Play firework particle
+
+        // Play sound for both players
+        hider.getWorld().playSound(hider.getLocation(), org.bukkit.Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 1.0f);
 
         // Turn into spectator mode
         event.getHider().setGameMode(GameMode.SPECTATOR);
 
         // Give ability to see all hiders and seekers client-side
-
+        // TODO: Glow effect
 
         HidingTeam hidingTeam = game.getHidingTeam(hider.getUniqueId());
 
@@ -233,7 +259,15 @@ public final class GameListener extends RegisteredListener {
             List<Player> onlinePlayers = hidingTeam.getOnlinePlayers();
             if (onlinePlayers != null && onlinePlayers.size() <= 1) {
                 hidingTeam.setActive(false);
-                // TODO: Send elimination message
+
+                MessageUtils.broadcast(hidingTeam.getDisplayName().append(Component.text(" has been eliminated!").color(NamedTextColor.RED)));
+                SoundUtils.broadcastSound(Sound.sound(org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, Sound.Source.MASTER, 1.0f, 1.0f));
+
+                for (OfflinePlayer player : hidingTeam.getPlayers()) {
+                    if (player.isOnline()) {
+                        MessageUtils.broadcastSubtitle(Component.text("Your team has been eliminated!").color(NamedTextColor.RED));
+                    }
+                }
             }
 
             // Set player to inactive

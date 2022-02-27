@@ -39,13 +39,6 @@ public final class MessageUtils {
         }
     }
 
-    public static void sendWarningTitle(String title) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.showTitle(Title.title(Component.text().build(), Component.text(title).color(NamedTextColor.RED)));
-            player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 1.0f);
-        }
-    }
-
     public static void broadcastTitle(TextComponent title) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.showTitle(Title.title(title, Component.text().build()));
@@ -55,6 +48,12 @@ public final class MessageUtils {
     public static void broadcastSubtitle(TextComponent title) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.showTitle(Title.title(Component.text().build(), title));
+        }
+    }
+
+    public static void broadcastActionbar(TextComponent actionbar) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendActionBar(actionbar);
         }
     }
 

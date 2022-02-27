@@ -1,24 +1,21 @@
 # TODO
-- [ ] GameCommand re-do
-- [ ] Fix chat prefix
 - [ ] Rounds
-- [ ] Get scoreboard working
-  - TITLE
-  - ╔══════════════════
-  - ╟ Time: XX:XX
-  - ╟ Teams Left: X
-  - ╟ Players Left: X
-  - ╚══════════════════
-  - @DotWavPresents
-- [ ] Make config reload command
+- [ ] Make team config reload command (include reload teams each config reload)
 - [ ] Glowing
 - [ ] Make sure that by the time the game time is at 00:00, the world border isn't too small
+- [ ] Performance test and fixes
 
 # To Test
+- Game winning message
+- Game winning scoreboard display
 - The entire game structure
 - Individual GameListener functionality
 - Glowing
 - Team Management
+- If players are active when they're offline
+- Tagging
+- Make sure everything still works fine when a player joins/leaves
+- Nameplate hiding
 
 # Future
 - [ ] Add lang functionality w/ placeholders for ALL string messages

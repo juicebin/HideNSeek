@@ -6,7 +6,6 @@ import juicebin.hidenseek.game.AbstractTeam;
 import juicebin.hidenseek.util.ScoreHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,9 +29,10 @@ public class PlayerJoinListener extends RegisteredListener {
 
         scoreHelper.setTitle(TITLE);
 
-//        Component displayName = team == null ? Component.text("N/A").color(NamedTextColor.GRAY) : team.getDisplayName();
-//        scoreHelper.setSlot(2, "&fTeam: " + displayName); // TODO: team color
         scoreHelper.setSlot(6, "╔══════════════════");
+        scoreHelper.setSlot(5, "╟");
+        scoreHelper.setSlot(4, "╟ Waiting For Players");
+        scoreHelper.setSlot(3, "╟");
         scoreHelper.setSlot(2, "╚══════════════════");
         scoreHelper.setSlot(1, "&7@DotWavPresents");
 
