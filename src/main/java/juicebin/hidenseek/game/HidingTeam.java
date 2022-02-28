@@ -12,9 +12,9 @@ public class HidingTeam extends AbstractTeam {
     private final List<OfflinePlayer> inactivePlayerList = new ArrayList<>();
     private boolean active;
 
-    public HidingTeam(String id, String displayName, TextColor color) {
-        super(id, displayName, color);
-        this.active = false;
+    public HidingTeam(String id, String displayName, TextColor color, String prefix, String suffix) {
+        super(id, displayName, color, prefix, suffix);
+        this.active = true;
     }
 
     public List<OfflinePlayer> getInactivePlayers() {

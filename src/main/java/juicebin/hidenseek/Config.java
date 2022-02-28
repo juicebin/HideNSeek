@@ -18,6 +18,7 @@ public final class Config {
     private final double borderShrinkSize;
     private final int glowStartTime;
     private final int glowInterval;
+    private final int glowLength;
     private final Location lobbyLocation;
     private final Location hiderSpawn;
     private final Location seekerSpawn;
@@ -31,6 +32,7 @@ public final class Config {
     private final List<Integer> borderWarningTimes;
     private final List<Integer> matchWarningTimes;
     private final List<Integer> glowWarningTimes;
+    private final List<Integer> seekerReleaseWarningTimes;
     private final boolean isDebugMode;
 
     public Config(HideNSeek instance) {
@@ -45,6 +47,7 @@ public final class Config {
         this.glowStartTime = config.getInt("glow.start_time");
         this.glowInterval = config.getInt("glow.interval");
         this.glowWarningTimes = config.getIntegerList("glow.warning_times");
+        this.glowLength = config.getInt("glow.length");
         this.seekerNames = teamConfig.getStringList("seekers");
         this.hiderNamesAll = new ArrayList<>();
         this.lobbyLocation = new Location(
@@ -70,6 +73,7 @@ public final class Config {
         for (String key : hiders.getKeys(false)) {
             hiderNamesAll.addAll(hiders.getStringList(key));
         }
+
         this.isDebugMode = config.isBoolean("debug");
 
         this.borderShrinkStartTime = config.getInt("border.start_shrink_time");
@@ -81,6 +85,7 @@ public final class Config {
         this.borderWarningTimes = config.getIntegerList("border.warning_times");
         this.borderShrinkTime = config.getLong("border.shrink_time");
         this.matchWarningTimes = config.getIntegerList("match_stop_warning_times");
+        this.seekerReleaseWarningTimes = config.getIntegerList("seeker_release_warning_times");
     }
 
     public int getHideTime() {
@@ -165,5 +170,13 @@ public final class Config {
 
     public int getReturnToLobbyDelay() {
         return returnToLobbyDelay;
+    }
+
+    public List<Integer> getSeekerReleaseWarningTimes() {
+        return seekerReleaseWarningTimes;
+    }
+
+    public int getGlowLength() {
+        return glowLength;
     }
 }

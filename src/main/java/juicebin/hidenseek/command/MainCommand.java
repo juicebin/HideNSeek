@@ -1,5 +1,8 @@
 package juicebin.hidenseek.command;
 
+import juicebin.hidenseek.util.MessageLevel;
+import juicebin.hidenseek.util.MessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +24,23 @@ public class MainCommand extends RegisteredCommand {
 
         String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
 
-        return switch (args[0].toLowerCase(Locale.ROOT)) {
-            case "game" -> new GameCommand(plugin).onCommand(sender, command, label, newArgs);
-            case "team" -> new TeamCommand(plugin).onCommand(sender, command, label, newArgs);
-            default -> false;
-        };
-
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "game" -> {
+                return new GameCommand(plugin).onCommand(sender, command, label, newArgs);
+            }
+            case "team" -> {
+                return new TeamCommand(plugin).onCommand(sender, command, label, newArgs);
+            }
+            case "reload" -> {
+                MessageUtils.sendMessage(sender, MessageLevel.SUCCESS, "Successfully reloaded config(s)");
+                plugin.reloadTeamConfig();
+                plugin.getGame().updateTeams();
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     @Override

@@ -126,6 +126,8 @@ public class GameCommand implements CommandExecutor {
                 .append(ComponentUtils.createPrefixedComponent(Component.text("Game Controller: ").color(NamedTextColor.WHITE)))
                 .append(this.createGameControllerComponent())
                 .append(Component.newline())
+                .append(ComponentUtils.createBulletedComponent(ComponentUtils.createLocationComponent("TP to Lobby", NamedTextColor.AQUA, game.getLobbyLocation())))
+                .append(Component.newline())
                 .append(ComponentUtils.createBulletedComponent(ComponentUtils.createLocationComponent("TP to Hider Spawn", NamedTextColor.AQUA, game.getHiderSpawn())))
                 .append(Component.newline())
                 .append(ComponentUtils.createBulletedComponent(ComponentUtils.createLocationComponent("TP to Seeker Spawn", NamedTextColor.AQUA, game.getSeekerSpawn())))

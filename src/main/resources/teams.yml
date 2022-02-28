@@ -1,6 +1,8 @@
 seekers:
   display-name: Seekers
   color: 0xf77714
+  prefix: 💀
+  suffix:
   players:
     juicebin: 1892fffd-de1d-4824-811c-f5cc01839369
     OriLovesTea: 79c5ceeb-6321-4e8f-825f-cf665eb4e399
@@ -8,12 +10,8 @@ hiders:
   team-1:
     display-name: Team 1
     color: 0x77d77
+    prefix: ♥
+    suffix:
     players:
       RobboFunny: 11d7ba74-6360-40c7-922d-11f0a8a92869
       AdrianahLee: 8aa63b41-9ff5-462b-bf47-044817c0d7af
-  team-2:
-    display-name: Team 2
-    color: 0x66f443
-    players:
-      Fluctra: d5518f3b-3e66-4e80-8fc6-81301fb2f05e
-      roseriie: 0361ec6c-b520-40ce-9da0-eca35209743a

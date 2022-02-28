@@ -45,6 +45,12 @@ public final class MessageUtils {
         }
     }
 
+    public static void broadcastTitle(Title title) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showTitle(title);
+        }
+    }
+
     public static void broadcastSubtitle(TextComponent title) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.showTitle(Title.title(Component.text().build(), title));

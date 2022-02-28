@@ -4,6 +4,7 @@ main: juicebin.hidenseek.HideNSeek
 api-version: 1.18
 author: juicebin
 prefix: HideNSeek
+softdepend: [GlowAPI]
 permissions:
   hidenseek.command:
     default: op

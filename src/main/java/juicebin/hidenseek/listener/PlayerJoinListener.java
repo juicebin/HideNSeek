@@ -25,7 +25,7 @@ public class PlayerJoinListener extends RegisteredListener {
         Player player = event.getPlayer();
         ScoreHelper scoreHelper = ScoreHelper.createScore(player);
         Game game = plugin.getGame();
-        AbstractTeam team = game.getTeam(player.getUniqueId());
+        AbstractTeam team = game.getTeam(player);
 
         scoreHelper.setTitle(TITLE);
 
@@ -41,20 +41,24 @@ public class PlayerJoinListener extends RegisteredListener {
             ((HidingTeam) team).setPlayerActive(player, false);
         }
 
-        // Add player to scoreboard team
         if (team != null) {
+            // Add player to scoreboard team
             Team scoreboardTeam = game.scoreboard.getTeam(team.getId());
             if (scoreboardTeam != null && !scoreboardTeam.hasPlayer(player)) {
                 scoreboardTeam.addPlayer(player);
             }
+
+            // Update team glowing
+            game.updateGlow(team);
         }
+
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         Game game = plugin.getGame();
-        AbstractTeam team = game.getTeam(player.getUniqueId());
+        AbstractTeam team = game.getTeam(player);
 
         // If the game is active and the player was on a team, remove them from the active player list
         if (game.isActive() && team instanceof HidingTeam) {

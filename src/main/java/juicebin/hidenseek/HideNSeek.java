@@ -2,6 +2,7 @@ package juicebin.hidenseek;
 
 import juicebin.hidenseek.command.*;
 import juicebin.hidenseek.game.Game;
+import juicebin.hidenseek.listener.ChatListener;
 import juicebin.hidenseek.listener.GameListener;
 import juicebin.hidenseek.listener.Listeners;
 import juicebin.hidenseek.listener.PlayerJoinListener;
@@ -26,7 +27,10 @@ public final class HideNSeek extends JavaPlugin {
     public static HideNSeek INSTANCE;
     private static final String LOG_PREFIX = "[HideNSeek] ";
     private Config configInstance;
+    private FileConfiguration config;
+    private File configFile;
     private FileConfiguration teamConfig;
+    private File teamConfigFile;
     private Commodore commodore;
     private Game game;
 
@@ -46,11 +50,13 @@ public final class HideNSeek extends JavaPlugin {
                 configInstance.getHiderSpawn(),
                 configInstance.getSeekerSpawn()
         );
+        this.game.updateTeams();
 
         // Register listeners
         Listeners listeners = new Listeners(
-                new GameListener(this),
-                new PlayerJoinListener()
+                new GameListener(),
+                new PlayerJoinListener(),
+                new ChatListener()
         );
         listeners.register(this);
 
@@ -72,7 +78,7 @@ public final class HideNSeek extends JavaPlugin {
     }
 
     private void createTeamsConfig() {
-        File teamConfigFile = new File(getDataFolder(), "teams.yml");
+        teamConfigFile = new File(getDataFolder(), "teams.yml");
         if (!teamConfigFile.exists()) {
             teamConfigFile.getParentFile().mkdirs();
             saveResource("teams.yml", false);
@@ -117,5 +123,13 @@ public final class HideNSeek extends JavaPlugin {
 
     public Game getGame() {
         return game;
+    }
+
+    public void reloadMainConfig() {
+
+    }
+
+    public void reloadTeamConfig() {
+        teamConfig = YamlConfiguration.loadConfiguration(teamConfigFile);
     }
 }

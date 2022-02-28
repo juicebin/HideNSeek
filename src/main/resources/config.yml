@@ -25,21 +25,43 @@ match_stop_warning_times:
   - 20
 
 # The amount of time between when the game ends and the player gets sent back to the lobby (in ticks)
-# Default: 100 (5 seconds)
+# Note: There is an additional 10 seconds added to this to give enough time to display the winning team
+# Default: 100 (5 (+10) seconds)
 return_to_lobby_delay: 100
+
+# The times before the the seekers get released when a warning will be sent
+seeker_release_warning_times:
+  - 6000 # 5 mins
+  - 2400 # 2 mins
+  - 1200 # 1 mins
+  - 600 # 30 seconds
+  - 200 # 10 seconds
+  - 180
+  - 160
+  - 140
+  - 120
+  - 100
+  - 80
+  - 60
+  - 40
+  - 20
 
 # Glow functionality details
 glow:
   # How much time it takes for the players to start glowing (in ticks)
-  # Default: 0 (starts the interval immediately)
-  start_time: 0
+  # Default: 19800 (when seekers are released, 24000-4200)
+  start_time: 19800
 
   # The amount of time in-between each time the hiders glow (in ticks)
   # Default: 3600 (3:00)
   interval: 3600
 
-  # The times before the start_time when a warning will be sent before the glowing starts
+  # The times before the start_time when a warning will be sent before the glowing FIRST starts
   warning_times:
+
+  # How long the glow lasts each time (in ticks)
+  # Default: 100 (5 seconds)
+  length: 100
 
 # Lobby location details
 lobby:

@@ -16,10 +16,14 @@ public abstract class AbstractTeam {
     protected final List<OfflinePlayer> playerList = new ArrayList<>();
     protected final TextColor color;
     protected final String id;
+    private final String prefix;
+    private final String suffix;
     protected final TextComponent displayName;
 
-    public AbstractTeam(String id, String displayName, TextColor color) {
+    public AbstractTeam(String id, String displayName, TextColor color, String prefix, String suffix) {
         this.id = id;
+        this.prefix = prefix;
+        this.suffix = suffix;
         this.displayName = Component.text(displayName).color(color);
         this.color = color;
     }
@@ -43,8 +47,8 @@ public abstract class AbstractTeam {
         return playerList;
     }
 
-    public boolean hasPlayer(UUID uuid) {
-        return playerList.contains(uuid);
+    public boolean hasPlayer(OfflinePlayer player) {
+        return playerList.contains(player);
     }
 
     public TextColor getColor() {
@@ -57,5 +61,13 @@ public abstract class AbstractTeam {
 
     public TextComponent getDisplayName() {
         return displayName;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public String getSuffix() {
+        return suffix;
     }
 }

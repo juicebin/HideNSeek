@@ -84,7 +84,8 @@ public class ScoreHelper {
             sidebar.getScore(entry).setScore(slot);
         }
 
-        team.displayName(component);
+        team.prefix(component);
+        team.suffix(Component.text().build());
     }
 
     public void removeSlot(int slot) {
@@ -126,6 +127,10 @@ public class ScoreHelper {
             s = s.substring(0, 32);
         }
         return s.length()>16 ? s.substring(16) : "";
+    }
+
+    public Scoreboard getScoreboard() {
+        return this.scoreboard;
     }
 
 }

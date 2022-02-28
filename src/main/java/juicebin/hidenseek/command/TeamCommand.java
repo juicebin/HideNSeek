@@ -96,7 +96,7 @@ public class TeamCommand implements CommandExecutor {
     }
 
     private TextComponent createTeamCommandComponent(AbstractTeam team) {
-        return ComponentUtils.createCommandComponent(team.getDisplayName(), "Click to view team info", "/hs team manage " + team.getId() + " view");
+        return ComponentUtils.createCommandComponent(team.getDisplayName(), "Click to view team info", "/hs team view-team " + team.getId());
     }
 
     private TextComponent createTeamInfoComponent(AbstractTeam team) {
