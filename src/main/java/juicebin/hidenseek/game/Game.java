@@ -112,6 +112,7 @@ public final class Game implements Listener {
         Glow glow = Glow.builder()
                 .plugin(plugin)
                 .animatedColor(ALLY_GLOW_COLOR)
+                .name("ally")
                 .build();
         for (Player player : onlinePlayers) {
             GlowUtils.setGlowing(glow, player, onlinePlayers);

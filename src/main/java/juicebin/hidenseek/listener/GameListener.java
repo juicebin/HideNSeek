@@ -204,6 +204,7 @@ public final class GameListener extends RegisteredListener {
         Glow glow = Glow.builder()
                 .plugin(plugin)
                 .animatedColor(Game.ENEMY_GLOW_COLOR)
+                .name("enemy")
                 .build();
 
         // Sets all hiders visible for seekers
